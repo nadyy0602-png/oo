@@ -1,0 +1,2595 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>إدارة المزرعة الشاملة — نظام إدارة مزارع النخيل</title>
+
+  <!-- تحميل خط القاهرة (Cairo) من جوجل لدعم العربية بوضوح وأناقة -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- تحميل مكتبة Tailwind CSS عبر CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- إعدادات الألوان والخطوط المخصصة لطابع مزارع النخيل الدافئ -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Cairo', 'system-ui', '-apple-system', 'sans-serif'],
+          },
+          colors: {
+            palm: {
+              50: '#f2fbf5',
+              100: '#e0f5e8',
+              200: '#c2ead2',
+              300: '#93d8b3',
+              400: '#5bbe8d',
+              500: '#35a26e',
+              600: '#248257',
+              700: '#1e6846',
+              800: '#1b533a',
+              900: '#174531',
+              950: '#0b261b',
+            },
+            sand: {
+              50: '#fcfaf5',
+              100: '#f6f1e4',
+              200: '#ece0c4',
+              300: '#e0cb9e',
+              400: '#d1b070',
+              500: '#c3974d',
+              600: '#b48240',
+              700: '#966835',
+              800: '#7a5430',
+              900: '#644529',
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Cairo', system-ui, -apple-system, sans-serif;
+      background-color: #f7f8f5;
+      color: #1c2822;
+      overflow-x: hidden;
+    }
+
+    /* تنسيقات مخصصة لشريط التمرير */
+    ::-webkit-scrollbar {
+      width: 7px;
+      height: 7px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #eef2ee;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #b7cfc2;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #248257;
+    }
+
+    /* إخفاء عناصر التحكم غير الضرورية عند الطباعة */
+    @media print {
+      .no-print {
+        display: none !important;
+      }
+      body {
+        background: #ffffff !important;
+        color: #000000 !important;
+      }
+      .print-card {
+        box-shadow: none !important;
+        border: 1px solid #d1d5db !important;
+        break-inside: avoid;
+      }
+      .print-only-header {
+        display: block !important;
+      }
+    }
+    .print-only-header {
+      display: none;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-[#f6f8f5] text-stone-800">
+
+  <!-- ترويسة تظهر فقط عند الطباعة -->
+  <div class="print-only-header p-4 border-b-2 border-palm-700 mb-4 text-center">
+    <h1 class="text-2xl font-extrabold text-palm-900" id="printFarmTitle">إدارة المزرعة الشاملة</h1>
+    <p class="text-sm text-stone-600 mt-1" id="printDateSubtitle"></p>
+  </div>
+
+  <!-- الشريط العلوي للهواتف والشاشات -->
+  <header class="no-print sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-stone-200/80 shadow-sm">
+    <div class="max-w-[1440px] mx-auto px-3 sm:px-6 h-16 flex items-center justify-between gap-2">
+      <!-- شعار واسم المزرعة -->
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-palm-600 to-palm-800 text-white flex items-center justify-center shadow-md shrink-0">
+          <!-- أيقونة نخلة SVG -->
+          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22V10" />
+            <path d="M12 10c-3.5-3-7.5-3-10-1 2.5 2 6.5 2 10 1Z" />
+            <path d="M12 10c3.5-3 7.5-3 10-1-2.5 2-6.5 2-10 1Z" />
+            <path d="M12 10c-2-4-5-6-8-5 2 2.5 5 4 8 5Z" />
+            <path d="M12 10c2-4 5-6 8-5-2 2.5-5 4-8 5Z" />
+            <path d="M9 22h6" />
+          </svg>
+        </div>
+        <div class="truncate">
+          <div class="flex items-center gap-2">
+            <h1 id="headerFarmName" class="text-base sm:text-lg font-extrabold text-palm-900 truncate">مزرعة واحة النخيل</h1>
+            <span class="hidden md:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-palm-100 text-palm-800">
+              <span class="w-1.5 h-1.5 rounded-full bg-palm-600"></span>
+              تعمل دون إنترنت
+            </span>
+          </div>
+          <p class="text-[11px] sm:text-xs text-stone-500 truncate">إدارة المزرعة الشاملة — عمال، مصروفات، عملاء، مبيعات، نخيل وتقارير</p>
+        </div>
+      </div>
+
+      <!-- أزرار سريعة في الأعلى -->
+      <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        <button onclick="openFarmSettingsModal()" class="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-sand-100 hover:bg-sand-200 text-sand-900 border border-sand-300/70 transition cursor-pointer" title="إعدادات المزرعة والنسخ الاحتياطي">
+          <svg class="w-4 h-4 text-sand-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3" />
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" />
+          </svg>
+          <span class="hidden sm:inline">إعدادات المزرعة</span>
+        </button>
+
+        <button onclick="exportBackupJSON()" class="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-palm-600 hover:bg-palm-700 text-white shadow-sm transition cursor-pointer" title="تصدير نسخة احتياطية JSON">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+          <span class="hidden md:inline">نسخة احتياطية</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- حاوية التطبيق الرئيسية (قائمة جانبية على الكمبيوتر + محتوى رئيسي) -->
+  <div class="flex-1 max-w-[1440px] w-full mx-auto flex flex-col lg:flex-row gap-4 p-3 sm:p-6 pb-24 lg:pb-6">
+
+    <!-- القائمة الجانبية للشاشات الكبيرة -->
+    <aside class="no-print hidden lg:flex flex-col w-64 shrink-0 gap-3">
+      <nav id="desktopNav" class="bg-white rounded-2xl border border-stone-200/80 shadow-sm p-2.5 space-y-1 sticky top-20"></nav>
+
+      <!-- بطاقة ملخص سريع في القائمة الجانبية -->
+      <div class="bg-gradient-to-br from-palm-800 to-palm-950 text-white rounded-2xl p-4 shadow-md">
+        <div class="text-xs text-palm-200 font-semibold mb-1">صافي الربح الحالي</div>
+        <div id="sidebarNetProfit" class="text-2xl font-extrabold tracking-tight">0 ج.م</div>
+        <div class="mt-3 pt-3 border-t border-white/15 flex items-center justify-between text-xs text-palm-100">
+          <span>إجمالي النخيل:</span>
+          <span id="sidebarPalmCount" class="font-bold">0 نخلة</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- شريط التنقل العلوي القابل للتمرير على الأجهزة اللوحية والهواتف -->
+    <div class="no-print lg:hidden -mx-3 px-3 overflow-x-auto pb-1">
+      <div id="mobileTopTabs" class="flex items-center gap-1.5 min-w-max"></div>
+    </div>
+
+    <!-- المحتوى الرئيسي -->
+    <main id="mainContent" class="flex-1 min-w-0 space-y-5"></main>
+  </div>
+
+  <!-- شريط تنقل سفلي ثابت للهواتف الذكية -->
+  <nav id="mobileBottomNav" class="no-print lg:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur border-t border-stone-200 px-1 py-1.5 grid grid-cols-6 gap-0.5 shadow-lg"></nav>
+
+  <!-- نافذة منبثقة (Modal) للنماذج والتفاصيل -->
+  <div id="modalBackdrop" class="no-print fixed inset-0 z-50 hidden items-center justify-center bg-stone-950/60 backdrop-blur-xs p-3 sm:p-4 overflow-y-auto">
+    <div id="modalCard" class="bg-white w-full max-w-2xl rounded-2xl border border-stone-200 shadow-2xl overflow-hidden my-auto max-h-[92vh] flex flex-col">
+      <div class="px-5 py-4 bg-palm-50 border-b border-stone-200 flex items-center justify-between">
+        <h2 id="modalTitle" class="text-lg font-extrabold text-palm-950">عنوان النافذة</h2>
+        <button onclick="closeModal()" class="w-9 h-9 rounded-xl bg-white hover:bg-rose-50 text-stone-500 hover:text-rose-600 border border-stone-200 flex items-center justify-center transition cursor-pointer" aria-label="إغلاق">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+      <div id="modalBody" class="p-4 sm:p-6 overflow-y-auto flex-1"></div>
+    </div>
+  </div>
+
+  <!-- صندوق إشعارات عائم (Toast) بديل آمن لـ alert -->
+  <div id="toastContainer" class="no-print fixed bottom-20 lg:bottom-6 left-4 z-50 flex flex-col gap-2 max-w-sm pointer-events-none"></div>
+
+  <!-- إدخال ملف مخفي لاستيراد نسخة احتياطية JSON -->
+  <input type="file" id="importJsonInput" accept="application/json,.json" class="hidden" onchange="handleImportJSON(event)" />
+
+  <script>
+    // =========================================================================
+    // 1. تعريف الثوابت والبيانات الافتراضية الواقعية لمزرعة نخيل
+    // =========================================================================
+    const STORAGE_KEY = 'palm_farm_management_system_v1';
+
+    const EXPENSE_CATEGORIES = [
+      'السولار',
+      'الأسمدة',
+      'المبيدات',
+      'الكهرباء',
+      'الصيانة',
+      'العمالة',
+      'المشتريات'
+    ];
+
+    const DATE_VARIETIES = [
+      'مجدول',
+      'برحي',
+      'صعيدي',
+      'سكري',
+      'سيوي'
+    ];
+
+    const AGRI_OPERATIONS_TYPES = [
+      'الري',
+      'التلقيح',
+      'التقليم',
+      'المكافحة',
+      'التسميد',
+      'الحصاد'
+    ];
+
+    const AGRI_STATUSES = [
+      'مكتملة',
+      'جارية',
+      'مجدولة'
+    ];
+
+    const NAV_ITEMS = [
+      {
+        id: 'workers',
+        label: 'العمال',
+        shortLabel: 'العمال',
+        icon: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`
+      },
+      {
+        id: 'expenses',
+        label: 'المصروفات',
+        shortLabel: 'المصروفات',
+        icon: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>`
+      },
+      {
+        id: 'clients',
+        label: 'العملاء',
+        shortLabel: 'العملاء',
+        icon: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`
+      },
+      {
+        id: 'sales',
+        label: 'المبيعات',
+        shortLabel: 'المبيعات',
+        icon: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>`
+      },
+      {
+        id: 'farm',
+        label: 'المزرعة والنخيل',
+        shortLabel: 'المزرعة',
+        icon: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22V10"/><path d="M12 10c-3.5-3-7.5-3-10-1 2.5 2 6.5 2 10 1Z"/><path d="M12 10c3.5-3 7.5-3 10-1-2.5 2-6.5 2-10 1Z"/><path d="M9 22h6"/></svg>`
+      },
+      {
+        id: 'reports',
+        label: 'التقارير والأرباح',
+        shortLabel: 'التقارير',
+        icon: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>`
+      }
+    ];
+
+    function createInitialData() {
+      return {
+        farmInfo: {
+          name: 'مزرعة واحة النخيل',
+          owner: 'م. محمود عبد الرحمن',
+          location: 'الواحات البحرية — الجيزة',
+          currency: 'ج.م',
+          totalPalms: 1450,
+          notes: 'مزرعة نموذجية متخصصة في إنتاج التمور الفاخرة والري الحديث.'
+        },
+        workers: [
+          {
+            id: 'w-1',
+            name: 'أحمد حسن منصور',
+            phone: '01012345678',
+            role: 'مشرف زراعي وتلقيح',
+            baseSalary: 7500,
+            presentDays: 28,
+            absentDays: 2,
+            advances: 1000,
+            deductions: 200
+          },
+          {
+            id: 'w-2',
+            name: 'محمود السيد علي',
+            phone: '01123456789',
+            role: 'فني ري وطلمبات سولار',
+            baseSalary: 6200,
+            presentDays: 30,
+            absentDays: 0,
+            advances: 500,
+            deductions: 0
+          },
+          {
+            id: 'w-3',
+            name: 'إبراهيم محمد جودة',
+            phone: '01234567890',
+            role: 'عامل تقليم وحصاد',
+            baseSalary: 5400,
+            presentDays: 26,
+            absentDays: 4,
+            advances: 800,
+            deductions: 350
+          },
+          {
+            id: 'w-4',
+            name: 'سعيد عبد الله خليل',
+            phone: '01556789012',
+            role: 'حارس ومراقب بوابة',
+            baseSalary: 4800,
+            presentDays: 29,
+            absentDays: 1,
+            advances: 400,
+            deductions: 100
+          }
+        ],
+        expenses: [
+          {
+            id: 'e-1',
+            category: 'السولار',
+            amount: 14500,
+            date: '2026-11-04',
+            notes: 'توريد سولار لتشغيل آبار الري الرئيسية لمدة أسبوعين'
+          },
+          {
+            id: 'e-2',
+            category: 'الأسمدة',
+            amount: 19200,
+            date: '2026-11-08',
+            notes: 'سماد عضوي متحلل وهيوميك أسيد لدعم تحجيم الثمار'
+          },
+          {
+            id: 'e-3',
+            category: 'المبيدات',
+            amount: 6800,
+            date: '2026-11-11',
+            notes: 'مبيدات وقائية لمكافحة سوسة النخيل والغبار'
+          },
+          {
+            id: 'e-4',
+            category: 'الكهرباء',
+            amount: 5300,
+            date: '2026-11-13',
+            notes: 'فاتورة كهرباء استراحة المزرعة والإنارة الليلية'
+          },
+          {
+            id: 'e-5',
+            category: 'الصيانة',
+            amount: 4600,
+            date: '2026-11-15',
+            notes: 'إصلاح محابس شبكة الري بالتنقيط وتغيير جوانات'
+          },
+          {
+            id: 'e-6',
+            category: 'العمالة',
+            amount: 8500,
+            date: '2026-11-17',
+            notes: 'أجور عمالة موسمية إضافية لأعمال التعبئة والفرز'
+          },
+          {
+            id: 'e-7',
+            category: 'المشتريات',
+            amount: 7900,
+            date: '2026-11-19',
+            notes: 'شراء صناديق بلاستيك وأكياس تعبئة للتمور'
+          }
+        ],
+        clients: [
+          {
+            id: 'c-1',
+            name: 'مؤسسة البركة لتجارة التمور',
+            phone: '01098765432',
+            address: 'سوق العبور — القاهرة',
+            type: 'تاجر جملة',
+            paymentsReceived: 85000,
+            notes: 'توريد منتظم أسبوعياً'
+          },
+          {
+            id: 'c-2',
+            name: 'شركة الخير للتصدير والحاصلات',
+            phone: '01287654321',
+            address: 'الإسكندرية — المنطقة الحرة',
+            type: 'تصدير',
+            paymentsReceived: 110000,
+            notes: 'أولوية تصدير لصنف المجدول الفاخر'
+          },
+          {
+            id: 'c-3',
+            name: 'أسواق الريف والمحاصيل',
+            phone: '01176543210',
+            address: '6 أكتوبر — الجيزة',
+            type: 'سلاسل تجارية',
+            paymentsReceived: 32000,
+            notes: 'سداد على دفعات خلال 21 يوماً'
+          }
+        ],
+        sales: [
+          {
+            id: 's-1',
+            clientId: 'c-2',
+            variety: 'مجدول',
+            quantity: 1200,
+            unit: 'كجم',
+            unitPrice: 110,
+            paidAmount: 110000,
+            date: '2026-11-05',
+            notes: 'فرز أول تصديري معبأ كراتين 5 كجم'
+          },
+          {
+            id: 's-2',
+            clientId: 'c-1',
+            variety: 'صعيدي',
+            quantity: 2500,
+            unit: 'كجم',
+            unitPrice: 38,
+            paidAmount: 85000,
+            date: '2026-11-10',
+            notes: 'شحنة جملة معبأة في أجولة'
+          },
+          {
+            id: 's-3',
+            clientId: 'c-3',
+            variety: 'برحي',
+            quantity: 900,
+            unit: 'كجم',
+            unitPrice: 55,
+            paidAmount: 32000,
+            date: '2026-11-16',
+            notes: 'توريد طازج ومبرد'
+          },
+          {
+            id: 's-4',
+            clientId: 'c-1',
+            variety: 'سكري',
+            quantity: 700,
+            unit: 'كجم',
+            unitPrice: 65,
+            paidAmount: 0,
+            date: '2026-11-19',
+            notes: 'فاتورة آجلة تحت التحصيل'
+          }
+        ],
+        varieties: [
+          {
+            id: 'v-1',
+            name: 'مجدول',
+            palmCount: 520,
+            yieldKg: 36400,
+            avgAgeYears: 9,
+            notes: 'عالي القيمة التصديرية ومقاومة جيدة للملوحة'
+          },
+          {
+            id: 'v-2',
+            name: 'صعيدي',
+            palmCount: 480,
+            yieldKg: 48000,
+            avgAgeYears: 14,
+            notes: 'إنتاجية وفيرة وثابتة سنوياً'
+          },
+          {
+            id: 'v-3',
+            name: 'برحي',
+            palmCount: 270,
+            yieldKg: 21600,
+            avgAgeYears: 7,
+            notes: 'مطلوب بشدة في السوق المحلي'
+          },
+          {
+            id: 'v-4',
+            name: 'سكري',
+            palmCount: 180,
+            yieldKg: 12600,
+            avgAgeYears: 6,
+            notes: 'جودة عالية وطعم مميز'
+          }
+        ],
+        operations: [
+          {
+            id: 'op-1',
+            type: 'الري',
+            variety: 'جميع الأصناف',
+            date: '2026-11-18',
+            status: 'مكتملة',
+            costOrNotes: 'ري منتظم لمدة 8 ساعات عبر خطوط التنقيط'
+          },
+          {
+            id: 'op-2',
+            type: 'المكافحة',
+            variety: 'مجدول',
+            date: '2026-11-14',
+            status: 'مكتملة',
+            costOrNotes: 'فحص دوري ومصائد فرمونية لـ 520 نخلة'
+          },
+          {
+            id: 'op-3',
+            type: 'التقليم',
+            variety: 'صعيدي',
+            date: '2026-11-22',
+            status: 'جارية',
+            costOrNotes: 'إزالة الجريد الجاف وتنظيف قواعد النخيل'
+          },
+          {
+            id: 'op-4',
+            type: 'التسميد',
+            variety: 'برحي',
+            date: '2026-11-26',
+            status: 'مجدولة',
+            costOrNotes: 'إضافة دفعة بوتاسيوم وسماد عضوي'
+          }
+        ]
+      };
+    }
+
+    // =========================================================================
+    // 2. حالة التطبيق وحفظ/استعادة البيانات من localStorage
+    // =========================================================================
+    let state = {
+      activeTab: 'workers',
+      searchQuery: '',
+      secondaryFilter: 'ALL',
+      data: createInitialData()
+    };
+
+    function saveStateToStorage() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state.data));
+      } catch (err) {
+        console.error('خطأ أثناء حفظ البيانات:', err);
+        showToast('تعذر حفظ البيانات في التخزين المحلي', 'error');
+      }
+    }
+
+    function loadStateFromStorage() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) {
+          state.data = createInitialData();
+          saveStateToStorage();
+          return;
+        }
+        const parsed = JSON.parse(raw);
+        const defaults = createInitialData();
+        state.data = {
+          farmInfo: { ...defaults.farmInfo, ...(parsed.farmInfo || {}) },
+          workers: Array.isArray(parsed.workers) ? parsed.workers : defaults.workers,
+          expenses: Array.isArray(parsed.expenses) ? parsed.expenses : defaults.expenses,
+          clients: Array.isArray(parsed.clients) ? parsed.clients : defaults.clients,
+          sales: Array.isArray(parsed.sales) ? parsed.sales : defaults.sales,
+          varieties: Array.isArray(parsed.varieties) ? parsed.varieties : defaults.varieties,
+          operations: Array.isArray(parsed.operations) ? parsed.operations : defaults.operations
+        };
+      } catch (err) {
+        console.error('خطأ في قراءة البيانات المخزنة:', err);
+        state.data = createInitialData();
+      }
+    }
+
+    // =========================================================================
+    // 3. دوال الحسابات المالية والتشغيلية الموحدة
+    // =========================================================================
+    function getCurrency() {
+      return state.data.farmInfo.currency || 'ج.م';
+    }
+
+    function formatMoney(num) {
+      const val = Number(num) || 0;
+      return `${val.toLocaleString('ar-EG', { maximumFractionDigits: 2 })} ${getCurrency()}`;
+    }
+
+    function formatNumber(num) {
+      return (Number(num) || 0).toLocaleString('ar-EG', { maximumFractionDigits: 2 });
+    }
+
+    // حساب صافي راتب العامل بدقة
+    function calculateWorkerNetSalary(worker) {
+      const base = Number(worker.baseSalary) || 0;
+      const present = Number(worker.presentDays) || 0;
+      const absent = Number(worker.absentDays) || 0;
+      const advances = Number(worker.advances) || 0;
+      const deductions = Number(worker.deductions) || 0;
+
+      // خصم أيام الغياب بناءً على شهر عمل 30 يوماً إذا وُجدت أيام غياب
+      const dailyRate = base / 30;
+      const absenceDeduction = absent > 0 ? dailyRate * absent : 0;
+      const net = base - absenceDeduction - advances - deductions;
+      return {
+        dailyRate,
+        absenceDeduction,
+        net: Math.round(net * 100) / 100
+      };
+    }
+
+    function getTotalWorkersNetSalaries() {
+      return state.data.workers.reduce((sum, w) => sum + calculateWorkerNetSalary(w).net, 0);
+    }
+
+    function getTotalDirectExpenses() {
+      return state.data.expenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+    }
+
+    // إجمالي المصروفات شامل صافي رواتب العمال
+    function getTotalExpensesIncludingSalaries(includeSalaries = true) {
+      const direct = getTotalDirectExpenses();
+      return includeSalaries ? direct + getTotalWorkersNetSalaries() : direct;
+    }
+
+    // حساب إجمالي الفاتورة والمتبقي لكل عملية بيع
+    function getSaleInvoiceTotal(sale) {
+      return (Number(sale.quantity) || 0) * (Number(sale.unitPrice) || 0);
+    }
+
+    function getTotalSalesRevenue() {
+      return state.data.sales.reduce((sum, s) => sum + getSaleInvoiceTotal(s), 0);
+    }
+
+    function getTotalSalesCollected() {
+      return state.data.sales.reduce((sum, s) => sum + (Number(s.paidAmount) || 0), 0);
+    }
+
+    // حساب مشتريات ومدفوعات ومتبقي كل عميل بناءً على المبيعات والدفعات المسجلة
+    function getClientFinancials(client) {
+      const clientSales = state.data.sales.filter(s => s.clientId === client.id);
+      const purchasesTotal = clientSales.reduce((sum, s) => sum + getSaleInvoiceTotal(s), 0);
+      const collectedFromSales = clientSales.reduce((sum, s) => sum + (Number(s.paidAmount) || 0), 0);
+      const extraPayments = Number(client.paymentsReceived) || 0;
+
+      // نعتمد أعلى قيمة بين المدفوعات المسجلة على الفواتير أو إجمالي المدفوعات المحدثة للعميل
+      // مع ضمان مزامنة سلسة عند إضافة فاتورة أو تسجيل دفعة للعميل
+      const totalPaid = Math.max(collectedFromSales, extraPayments);
+      const remainingDebt = Math.max(0, purchasesTotal - totalPaid);
+
+      return {
+        purchasesTotal,
+        totalPaid,
+        remainingDebt,
+        invoicesCount: clientSales.length
+      };
+    }
+
+    function getTotalClientDebts() {
+      return state.data.clients.reduce((sum, c) => sum + getClientFinancials(c).remainingDebt, 0);
+    }
+
+    function getTotalPalmsCount() {
+      const varietiesSum = state.data.varieties.reduce((sum, v) => sum + (Number(v.palmCount) || 0), 0);
+      return varietiesSum > 0 ? varietiesSum : (Number(state.data.farmInfo.totalPalms) || 0);
+    }
+
+    function getTotalYieldKg() {
+      return state.data.varieties.reduce((sum, v) => sum + (Number(v.yieldKg) || 0), 0);
+    }
+
+    // =========================================================================
+    // 4. التنقل، الإشعارات، وإدارة النوافذ المنبثقة
+    // =========================================================================
+    function switchTab(tabId) {
+      state.activeTab = tabId;
+      state.searchQuery = '';
+      state.secondaryFilter = 'ALL';
+      renderNavigation();
+      renderCurrentModule();
+      updateGlobalSummaryBadges();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function renderNavigation() {
+      const desktopNav = document.getElementById('desktopNav');
+      const mobileTop = document.getElementById('mobileTopTabs');
+      const mobileBottom = document.getElementById('mobileBottomNav');
+
+      desktopNav.innerHTML = NAV_ITEMS.map(item => {
+        const active = state.activeTab === item.id;
+        return `
+          <button onclick="switchTab('${item.id}')"
+            class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition cursor-pointer ${
+              active
+                ? 'bg-palm-600 text-white shadow-sm'
+                : 'text-stone-700 hover:bg-palm-50 hover:text-palm-800'
+            }">
+            <span class="${active ? 'text-white' : 'text-palm-600'}">${item.icon}</span>
+            <span>${item.label}</span>
+          </button>
+        `;
+      }).join('');
+
+      mobileTop.innerHTML = NAV_ITEMS.map(item => {
+        const active = state.activeTab === item.id;
+        return `
+          <button onclick="switchTab('${item.id}')"
+            class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition cursor-pointer ${
+              active
+                ? 'bg-palm-700 text-white shadow-sm'
+                : 'bg-white text-stone-700 border border-stone-200 hover:bg-palm-50'
+            }">
+            <span>${item.shortLabel}</span>
+          </button>
+        `;
+      }).join('');
+
+      mobileBottom.innerHTML = NAV_ITEMS.map(item => {
+        const active = state.activeTab === item.id;
+        return `
+          <button onclick="switchTab('${item.id}')"
+            class="flex flex-col items-center justify-center py-1 px-0.5 rounded-xl text-[10px] font-bold transition cursor-pointer ${
+              active
+                ? 'text-palm-700 bg-palm-50'
+                : 'text-stone-500 hover:text-palm-700'
+            }">
+            <span class="w-4 h-4 mb-0.5 flex items-center justify-center">${item.icon}</span>
+            <span class="truncate max-w-full">${item.shortLabel}</span>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function updateGlobalSummaryBadges() {
+      const revenues = getTotalSalesRevenue();
+      const expenses = getTotalExpensesIncludingSalaries(true);
+      const netProfit = revenues - expenses;
+      const palms = getTotalPalmsCount();
+
+      document.getElementById('headerFarmName').textContent = state.data.farmInfo.name || 'مزرعة النخيل';
+      document.getElementById('printFarmTitle').textContent = state.data.farmInfo.name || 'مزرعة النخيل';
+      document.getElementById('printDateSubtitle').textContent =
+        `تاريخ الطباعة: ${new Date().toLocaleDateString('ar-EG', { dateStyle: 'full' })} — ${state.data.farmInfo.location || ''}`;
+
+      const profitEl = document.getElementById('sidebarNetProfit');
+      profitEl.textContent = formatMoney(netProfit);
+      profitEl.className = `text-2xl font-extrabold tracking-tight ${netProfit >= 0 ? 'text-emerald-300' : 'text-rose-300'}`;
+
+      document.getElementById('sidebarPalmCount').textContent = `${formatNumber(palms)} نخلة`;
+    }
+
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      const styles = type === 'error'
+        ? 'bg-rose-700 text-white border-rose-800'
+        : type === 'warning'
+        ? 'bg-amber-600 text-white border-amber-700'
+        : 'bg-palm-800 text-white border-palm-900';
+
+      toast.className = `px-4 py-3 rounded-xl border shadow-lg text-sm font-bold flex items-center gap-2 transition-all duration-300 pointer-events-auto ${styles}`;
+      toast.innerHTML = `<span>${escapeHtml(message)}</span>`;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(10px)';
+        setTimeout(() => toast.remove(), 300);
+      }, 2800);
+    }
+
+    function openModal(title, htmlContent) {
+      document.getElementById('modalTitle').textContent = title;
+      document.getElementById('modalBody').innerHTML = htmlContent;
+      const backdrop = document.getElementById('modalBackdrop');
+      backdrop.classList.remove('hidden');
+      backdrop.classList.add('flex');
+    }
+
+    function closeModal() {
+      const backdrop = document.getElementById('modalBackdrop');
+      backdrop.classList.add('hidden');
+      backdrop.classList.remove('flex');
+      document.getElementById('modalBody').innerHTML = '';
+    }
+
+    document.getElementById('modalBackdrop').addEventListener('click', (e) => {
+      if (e.target.id === 'modalBackdrop') closeModal();
+    });
+
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    // =========================================================================
+    // 5. عرض القسم النشط (توجيه إلى أحد الأقسام الستة)
+    // =========================================================================
+    function renderCurrentModule() {
+      const container = document.getElementById('mainContent');
+      switch (state.activeTab) {
+        case 'workers':
+          renderWorkersModule(container);
+          break;
+        case 'expenses':
+          renderExpensesModule(container);
+          break;
+        case 'clients':
+          renderClientsModule(container);
+          break;
+        case 'sales':
+          renderSalesModule(container);
+          break;
+        case 'farm':
+          renderFarmModule(container);
+          break;
+        case 'reports':
+          renderReportsModule(container);
+          break;
+        default:
+          renderWorkersModule(container);
+      }
+    }
+
+    // =========================================================================
+    // 6. القسم الأول: العمال والرواتب
+    // =========================================================================
+    function renderWorkersModule(container) {
+      const workers = state.data.workers;
+      const totalBase = workers.reduce((s, w) => s + (Number(w.baseSalary) || 0), 0);
+      const totalAdvances = workers.reduce((s, w) => s + (Number(w.advances) || 0), 0);
+      const totalDeductions = workers.reduce((s, w) => s + (Number(w.deductions) || 0), 0);
+      const totalNet = getTotalWorkersNetSalaries();
+
+      const q = state.searchQuery.trim().toLowerCase();
+      const filtered = workers.filter(w =>
+        !q ||
+        w.name.toLowerCase().includes(q) ||
+        (w.phone || '').toLowerCase().includes(q) ||
+        (w.role || '').toLowerCase().includes(q)
+      );
+
+      container.innerHTML = `
+        <!-- رأس القسم -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 sm:p-5 rounded-2xl border border-stone-200/80 shadow-sm">
+          <div>
+            <h2 class="text-xl font-extrabold text-palm-950">1. إدارة العمال والرواتب</h2>
+            <p class="text-xs sm:text-sm text-stone-500 mt-0.5">متابعة الحضور والغياب، السلف والخصومات، وحساب صافي الرواتب تلقائياً</p>
+          </div>
+          <button onclick="openWorkerModal()" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-palm-600 hover:bg-palm-700 text-white text-sm font-bold shadow-sm transition cursor-pointer">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span>إضافة عامل جديد</span>
+          </button>
+        </div>
+
+        <!-- بطاقات المؤشرات -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <div class="bg-white p-4 rounded-2xl border border-stone-200/80 shadow-sm">
+            <div class="text-xs font-bold text-stone-500">عدد العمال</div>
+            <div class="text-2xl font-extrabold text-palm-900 mt-1">${formatNumber(workers.length)} عامل</div>
+            <div class="text-[11px] text-stone-400 mt-1">إجمالي الأساسي: ${formatMoney(totalBase)}</div>
+          </div>
+          <div class="bg-white p-4 rounded-2xl border border-stone-200/80 shadow-sm">
+            <div class="text-xs font-bold text-stone-500">إجمالي السلف</div>
+            <div class="text-2xl font-extrabold text-amber-600 mt-1">${formatMoney(totalAdvances)}</div>
+            <div class="text-[11px] text-stone-400 mt-1">سلف منصرفة للعمال</div>
+          </div>
+          <div class="bg-white p-4 rounded-2xl border border-stone-200/80 shadow-sm">
+            <div class="text-xs font-bold text-stone-500">إجمالي الخصومات</div>
+            <div class="text-2xl font-extrabold text-rose-600 mt-1">${formatMoney(totalDeductions)}</div>
+            <div class="text-[11px] text-stone-400 mt-1">جزاءات وخصومات إضافية</div>
+          </div>
+          <div class="bg-gradient-to-br from-palm-600 to-palm-800 text-white p-4 rounded-2xl shadow-sm">
+            <div class="text-xs font-bold text-palm-100">صافي الرواتب المستحقة</div>
+            <div class="text-2xl font-extrabold mt-1">${formatMoney(totalNet)}</div>
+            <div class="text-[11px] text-palm-200 mt-1">بعد الغياب والسلف والخصومات</div>
+          </div>
+        </div>
+
+        <!-- شريط البحث -->
+        <div class="bg-white p-3.5 rounded-2xl border border-stone-200/80 shadow-sm flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
+          <div class="relative flex-1">
+            <input type="text" value="${escapeHtml(state.searchQuery)}" oninput="handleSearchInput(this.value)"
+              placeholder="ابحث باسم العامل، رقم الهاتف، أو الوظيفة..."
+              class="w-full pr-10 pl-4 py-2.5 rounded-xl bg-stone-50 border border-stone-200 focus:bg-white focus:border-palm-500 focus:outline-none text-sm" />
+            <svg class="w-4 h-4 text-stone-400 absolute right-3.5 top-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </div>
+          <div class="text-xs font-bold text-stone-500 px-1">
+            عرض ${filtered.length} من أصل ${workers.length} عامل
+          </div>
+        </div>
+
+        <!-- جدول العمال للشاشات الكبيرة وبطاقات للهواتف -->
+        ${filtered.length === 0 ? `
+          <div class="bg-white rounded-2xl border border-stone-200 p-10 text-center text-stone-500">
+            لا توجد بيانات عمال مطابقة للبحث الحالي.
+          </div>
+        ` : `
+          <!-- عرض البطاقات للموبايل -->
+          <div class="grid grid-cols-1 md:hidden gap-3">
+            ${filtered.map(w => {
+              const calc = calculateWorkerNetSalary(w);
+              return `
+                <div class="bg-white p-4 rounded-2xl border border-stone-200/90 shadow-sm space-y-3">
+                  <div class="flex items-start justify-between gap-2">
+                    <div>
+                      <h3 class="font-extrabold text-palm-950 text-base">${escapeHtml(w.name)}</h3>
+                      <p class="text-xs text-palm-700 font-semibold">${escapeHtml(w.role)}</p>
+                      <p class="text-xs text-stone-500 mt-0.5" dir="ltr">${escapeHtml(w.phone)}</p>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-xl bg-palm-50 text-palm-800 border border-palm-200 text-xs font-extrabold">
+                      صافي: ${formatMoney(calc.net)}
+                    </span>
+                  </div>
+                  <div class="grid grid-cols-3 gap-2 bg-stone-50 p-2.5 rounded-xl text-center text-xs">
+                    <div>
+                      <div class="text-stone-400">الأساسي</div>
+                      <div class="font-bold text-stone-800">${formatMoney(w.baseSalary)}</div>
+                    </div>
+                    <div>
+                      <div class="text-stone-400">حضور / غياب</div>
+                      <div class="font-bold text-stone-800">${w.presentDays} / <span class="text-rose-600">${w.absentDays}</span></div>
+                    </div>
+                    <div>
+                      <div class="text-stone-400">سلف / خصم</div>
+                      <div class="font-bold text-amber-700">${formatNumber(w.advances)} / ${formatNumber(w.deductions)}</div>
+                    </div>
+                  </div>
+                  <div class="flex items-center justify-end gap-2 pt-1">
+                    <button onclick="openWorkerModal('${w.id}')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-sand-100 hover:bg-sand-200 text-sand-900 cursor-pointer">تعديل</button>
+                    <button onclick="deleteWorker('${w.id}')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-rose-50 hover:bg-rose-100 text-rose-700 cursor-pointer">حذف</button>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+
+          <!-- عرض الجدول للكمبيوتر -->
+          <div class="hidden md:block bg-white rounded-2xl border border-stone-200/80 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-right border-collapse">
+                <thead>
+                  <tr class="bg-palm-50/80 border-b border-stone-200 text-xs font-extrabold text-palm-950">
+                    <th class="py-3.5 px-4">العامل</th>
+                    <th class="py-3.5 px-3">رقم الهاتف</th>
+                    <th class="py-3.5 px-3">الوظيفة</th>
+                    <th class="py-3.5 px-3">الراتب الأساسي</th>
+                    <th class="py-3.5 px-3">حضور / غياب</th>
+                    <th class="py-3.5 px-3">السلف</th>
+                    <th class="py-3.5 px-3">الخصومات</th>
+                    <th class="py-3.5 px-3">صافي الراتب</th>
+                    <th class="py-3.5 px-4 text-center">إجراءات</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-stone-100 text-sm">
+                  ${filtered.map(w => {
+                    const calc = calculateWorkerNetSalary(w);
+                    return `
+                      <tr class="hover:bg-stone-50/80 transition">
+                        <td class="py-3 px-4 font-bold text-stone-900">${escapeHtml(w.name)}</td>
+                        <td class="py-3 px-3 text-stone-600 text-xs" dir="ltr">${escapeHtml(w.phone)}</td>
+                        <td class="py-3 px-3 text-stone-700 text-xs font-semibold">${escapeHtml(w.role)}</td>
+                        <td class="py-3 px-3 font-semibold">${formatMoney(w.baseSalary)}</td>
+                        <td class="py-3 px-3 text-xs">
+                          <span class="px-2 py-0.5 rounded-lg bg-emerald-50 text-emerald-700 font-bold">${w.presentDays} حضور</span>
+                          <span class="px-2 py-0.5 rounded-lg bg-rose-50 text-rose-700 font-bold">${w.absentDays} غياب</span>
+                        </td>
+                        <td class="py-3 px-3 text-amber-700 font-semibold">${formatMoney(w.advances)}</td>
+                        <td class="py-3 px-3 text-rose-700 font-semibold">${formatMoney(w.deductions)}</td>
+                        <td class="py-3 px-4">
+                          <span class="px-2.5 py-1 rounded-xl bg-palm-100 text-palm-900 font-extrabold text-xs">
+                            ${formatMoney(calc.net)}
+                          </span>
+                        </td>
+                        <td class="py-3 px-4 text-center">
+                          <div class="inline-flex items-center gap-1.5">
+                            <button onclick="openWorkerModal('${w.id}')" class="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-sand-100 hover:bg-sand-200 text-sand-900 cursor-pointer">تعديل</button>
+                            <button onclick="deleteWorker('${w.id}')" class="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-rose-50 hover:bg-rose-100 text-rose-700 cursor-pointer">حذف</button>
+                          </div>
+                        </td>
+                      </tr>
+                    `;
+                  }).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `}
+      `;
+    }
+
+    function openWorkerModal(workerId = null) {
+      const worker = workerId ? state.data.workers.find(w => w.id === workerId) : null;
+      const w = worker || {
+        id: '',
+        name: '',
+        phone: '',
+        role: '',
+        baseSalary: 5000,
+        presentDays: 28,
+        absentDays: 0,
+        advances: 0,
+        deductions: 0
+      };
+
+      openModal(worker ? 'تعديل بيانات العامل والراتب' : 'إضافة عامل جديد', `
+        <form onsubmit="saveWorkerForm(event)" class="space-y-4">
+          <input type="hidden" id="w_id" value="${escapeHtml(w.id)}" />
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <div>
+              <label class="block text-xs font-bold text-stone-700 mb-1">اسم العامل *</label>
+              <input type="text" id="w_name" required value="${escapeHtml(w.name)}" placeholder="مثال: كريم مصطفى حسن"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:border-palm-500 focus:outline-none text-sm" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-stone-700 mb-1">رقم الهاتف *</label>
+              <input type="tel" id="w_phone" required value="${escapeHtml(w.phone)}" placeholder="01000000000"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:border-palm-500 focus:outline-none text-sm" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <div>
+              <label class="block text-xs font-bold text-stone-700 mb-1">الوظيفة *</label>
+              <input type="text" id="w_role" required value="${escapeHtml(w.role)}" placeholder="مثال: عامل ري / طالع نخل"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:border-palm-500 focus:outline-none text-sm" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-stone-700 mb-1">الراتب الأساسي (${getCurrency()}) *</label>
+              <input type="number" id="w_baseSalary" required min="0" step="0.01" value="${w.baseSalary}" oninput="recalcModalWorkerNet()"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:border-palm-500 focus:outline-none text-sm" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div>
+              <label class="block text-xs font-bold text-stone-700 mb-1">أيام الحضور</label>
+              <input type="number" id="w_presentDays" min="0" max="31" value="${w.presentDays}" oninput="recalcModalWorkerNet()"
+                class="w-full px-3 py-2 rounded-xl border border-stone-300 focus:border-palm-500 focus:outline-none text-sm" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-stone-700 mb-1">أيام الغياب</label>
+              <input type="number" id="w_absentDays" min="0" max="31" value="${w.absentDays}" oninput="recalcModalWorkerNet()"
+                class="w-full px-3 py-2 rounded-xl border border-stone-300 focus:border-palm-500 focus:outline-none text-sm" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-stone-700 mb-1">السلف</label>
+              <input type="number" id="w_advances" min="0" step="0.01" value="${w.advances}" oninput="recalcModalWorkerNet()"
+                class="w-full px-3 py-2 rounded-xl border border-stone-300 focus:border-palm-500 focus:outline-none text-sm" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-stone-700 mb-1">الخصومات</label>
+              <input type="number" id="w_deductions" min="0" step="0.01" value="${w.deductions}" oninput="recalcModalWorkerNet()"
+                class="w-full px-3 py-2 rounded-xl border border-stone-300 focus:border-palm-500 focus:outline-none text-sm" />
+            </div>
+          </div>
+
+          <!-- معاينة فورية لصافي الراتب -->
+          <div class="p-4 rounded-xl bg-palm-50 border border-palm-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <div class="text-xs font-bold text-palm-800">صافي الراتب المحسوب تلقائياً</div>
+              <div id="w_calcBreakdown" class="text-[11px] text-palm-700 mt-0.5"></div>
+            </div>
+            <div id="w_netPreview" class="text-xl font-extrabold text-palm-950"></div>
+          </div>
+
+          <div class="flex items-center justify-end gap-2 pt-2">
+            <button type="button" onclick="closeModal()" class="px-4 py-2.5 rounded-xl text-sm font-bold bg-stone-100 hover:bg-stone-200 text-stone-700 cursor-pointer">إلغاء</button>
+            <button type="submit" class="px-5 py-2.5 rounded-xl text-sm font-bold bg-palm-600 hover:bg-palm-700 text-white cursor-pointer">حفظ البيانات</button>
+          </div>
+        </form>
+      `);
+
+      recalcModalWorkerNet();
+    }
+
+    function recalcModalWorkerNet() {
+      const base = Number(document.getElementById('w_baseSalary')?.value) || 0;
+      const present = Number(document.getElementById('w_presentDays')?.value) || 0;
+      const absent = Number(document.getElementById('w_absentDays')?.value) || 0;
+      const advances = Number(document.getElementById('w_advances')?.value) || 0;
+      const deductions = Number(document.getElementById('w_deductions')?.value) || 0;
+
+      const calc = calculateWorkerNetSalary({ baseSalary: base, presentDays: present, absentDays: absent, advances, deductions });
+      const previewEl = document.getElementById('w_netPreview');
+      const breakdownEl = document.getElementById('w_calcBreakdown');
+      if (previewEl) previewEl.textContent = formatMoney(calc.net);
+      if (breakdownEl) {
+        breakdownEl.textContent = `خصم غياب (${absent} يوم): ${formatMoney(calc.absenceDeduction)} • سلف: ${formatMoney(advances)} • خصومات: ${formatMoney(deductions)}`;
+      }
+    }
+
+    function saveWorkerForm(e) {
+      e.preventDefault();
+      const id = document.getElementById('w_id').value || `w-${Date.now()}`;
+      const record = {
+        id,
+        name: document.getElementById('w_name').value.trim(),
+        phone: document.getElementById('w_phone').value.trim(),
+        role: document.getElementById('w_role').value.trim(),
+        baseSalary: Math.max(0, Number(document.getElementById('w_baseSalary').value) || 0),
+        presentDays: Math.max(0, Number(document.getElementById('w_presentDays').value) || 0),
+        absentDays: Math.max(0, Number(document.getElementById('w_absentDays').value) || 0),
+        advances: Math.max(0, Number(document.getElementById('w_advances').value) || 0),
+        deductions: Math.max(0, Number(document.getElementById('w_deductions').value) || 0)
+      };
+
+      const idx = state.data.workers.findIndex(w => w.id === id);
+      if (idx >= 0) {
+        state.data.workers[idx] = record;
+        showToast('تم تحديث بيانات العامل بنجاح');
+      } else {
+        state.data.workers.unshift(record);
+        showToast('تمت إضافة العامل بنجاح');
+      }
+
+      saveStateToStorage();
+      closeModal();
+      renderCurrentModule();
+      updateGlobalSummaryBadges();
+    }
+
+    function deleteWorker(id) {
+      state.data.workers = state.data.workers.filter(w => w.id !== id);
+      saveStateToStorage();
+      renderCurrentModule();
+      updateGlobalSummaryBadges();
+      showToast('تم حذف سجل العامل', 'warning');
+    }
+
+    // =========================================================================
+    // 7. القسم الثاني: المصروفات
+    // =========================================================================
+    function renderExpensesModule(container) {
+      const expenses = state.data.expenses;
+      const totalDirect = getTotalDirectExpenses();
+      const totalSalaries = getTotalWorkersNetSalaries();
+
+      const q = state.searchQuery.trim().toLowerCase();
+      const catFilter = state.secondaryFilter;
+
+      const filtered = expenses.filter(e => {
+        const matchCat = catFilter === 'ALL' || e.category === catFilter;
+        const matchQ = !q ||
+          (e.category || '').toLowerCase().includes(q) ||
+          (e.notes || '').toLowerCase().includes(q) ||
+          (e.date || '').includes(q);
+        return matchCat && matchQ;
+      });
+
+      const filteredSum = filtered.reduce((s, e) => s + (Number(e.amount) || 0), 0);
+
+      // تجميع المصروفات حسب الفئة
+      const byCategory = EXPENSE_CATEGORIES.map(cat => ({
+        category: cat,
+        total: expenses.filter(e => e.category === cat).reduce((s, e) => s + (Number(e.amount) || 0), 0)
+      }));
+
+      container.innerHTML = `
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 sm:p-5 rounded-2xl border border-stone-200/80 shadow-sm">
+          <div>
+            <h2 class="text-xl font-extrabold text-palm-950">2. إدارة المصروفات التشغيلية</h2>
+            <p class="text-xs sm:text-sm text-stone-500 mt-0.5">السولار، الأسمدة، المبيدات، الكهرباء، الصيانة، العمالة والمشتريات</p>
+          </div>
+          <button onclick="openExpenseModal()" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-palm-600 hover:bg-palm-700 text-white text-sm font-bold shadow-sm transition cursor-pointer">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span>تسجيل مصروف جديد</span>
+          </button>
+        </div>
+
+        <!-- ملخص المصروفات -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+          <div class="bg-white p-4 rounded-2xl border border-stone-200/80 shadow-sm">
+            <div class="text-xs font-bold text-stone-500">إجمالي المصروفات المسجلة</div>
+            <div class="text-2xl font-extrabold text-rose-700 mt-1">${formatMoney(totalDirect)}</div>
+            <div class="text-[11px] text-stone-400 mt-1">${expenses.length} بند مصروف</div>
+          </div>
+          <div class="bg-white p-4 rounded-2xl border border-stone-200/80 shadow-sm">
+            <div class="text-xs font-bold text-stone-500">صافي رواتب العمال</div>
+            <div class="text-2xl font-extrabold text-amber-700 mt-1">${formatMoney(totalSalaries)}</div>
+            <div class="text-[11px] text-stone-400 mt-1">مرتبط بقسم العمال</div>
+          </div>
+          <div class="bg-gradient-to-br from-stone-800 to-stone-900 text-white p-4 rounded-2xl shadow-sm">
+            <div class="text-xs font-bold text-stone-300">إجمالي المصروفات الكلي</div>
+            <div class="text-2xl font-extrabold mt-1">${formatMoney(totalDirect + totalSalaries)}</div>
+            <div class="text-[11px] text-stone-400 mt-1">تشغيلي + رواتب</div>
+          </div>
+        </div>
+
+        <!-- أشرطة توزيع الفئات السريعة -->
+        <div class="bg-white p-4 rounded-2xl border border-stone-200/80 shadow-sm">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-extrabold text-stone-700">توزيع المصروفات حسب البند (انقر للتصفية):</span>
+            ${catFilter !== 'ALL' ? `<button onclick="setSecondaryFilter('ALL')" class="text-xs font-bold text-palm-700 hover:underline cursor-pointer">عرض الكل</button>` : ''}
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <button onclick="setSecondaryFilter('ALL')"
+              class="px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${catFilter === 'ALL' ? 'bg-palm-700 text-white' : 'bg-stone-100 text-stone-700 hover:bg-stone-200'}">
+              الكل (${formatMoney(totalDirect)})
+            </button>
+            ${byCategory.map(item => `
+              <button onclick="setSecondaryFilter('${item.category}')"
+                class="px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${catFilter === item.category ? 'bg-palm-700 text-white' : 'bg-sand-50 text-stone-800 border border-sand-200 hover:bg-sand-100'}">
+                ${item.category}: <span class="font-extrabold">${formatMoney(item.total)}</span>
+              </button>
+            `).join('')}
+          </div>
+        </div>
+
+        <!-- البحث وحصيلة الفلتر -->
+        <div class="bg-white p-3.5 rounded-2xl border border-stone-200/80 shadow-sm flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
+          <div class="relative flex-1">
+            <input type="text" value="${escapeHtml(state.searchQuery)}" oninput="handleSearchInput(this.value)"
+              placeholder="ابحث في البيان، الملاحظات، البند، أو التاريخ..."
+              class="w-full pr-10 pl-4 py-2.5 rounded-xl bg-stone-50 border border-stone-200 focus:bg-white focus:border-palm-500 focus:outline-none text-sm" />
+            <svg class="w-4 h-4 text-stone-400 absolute right-3.5 top-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </div>
+          <div class="text-xs font-extrabold text-rose-700 bg-rose-50 px-3 py-2 rounded-xl border border-rose-100">
+            مجموع المحدد: ${formatMoney(filteredSum)}
+          </div>
+        </div>
+
+        <!-- قائمة المصروفات -->
+        ${filtered.length === 0 ? `
+          <div class="bg-white rounded-2xl border border-stone-200 p-10 text-center text-stone-500">لا توجد مصروفات مطابقة للتصفية الحالية.</div>
+        ` : `
+          <div class="grid grid-cols-1 md:hidden gap-3">
+            ${filtered.map(e => `
+              <div class="bg-white p-4 rounded-2xl border border-stone-200/80 shadow-sm space-y-2.5">
+                <div class="flex items-center justify-between">
+                  <span class="px-2.5 py-1 rounded-xl bg-sand-100 text-sand-900 text-xs font-extrabold">${escapeHtml(e.category)}</span>
+                  <span class="text-base font-extrabold text-rose-700">${formatMoney(e.amount)}</span>
+                </div>
+                <p class="text-sm text-stone-700">${escapeHtml(e.notes || 'بدون ملاحظات')}</p>
+                <div class="flex items-center justify-between pt-1 text-xs text-stone-500">
+                  <span>التاريخ: ${escapeHtml(e.date)}</span>
+                  <div class="flex items-center gap-2">
+                    <button onclick="openExpenseModal('${e.id}')" class="px-2.5 py-1 rounded-lg font-bold bg-sand-100 text-sand-900 cursor-pointer">تعديل</button>
+                    <button onclick="deleteExpense('${e.id}')" class="px-2.5 py-1 rounded-lg font-bold bg-rose-50 text-rose-700 cursor-pointer">حذف</button>
+                  </div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+
+          <div class="hidden md:block bg-white rounded-2xl border border-stone-200/80 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-right border-collapse">
+                <thead>
+                  <tr class="bg-palm-50/80 border-b border-stone-200 text-xs font-extrabold text-palm-950">
+                    <th class="py-3.5 px-4">التاريخ</th>
+                    <th class="py-3.5 px-3">البند</th>
+                    <th class="py-3.5 px-3">البيان والملاحظات</th>
+                    <th class="py-3.5 px-3">المبلغ</th>
+                    <th class="py-3.5 px-4 text-center">إجراءات</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-stone-100 text-sm">
+                  ${filtered.map(e => `
+                    <tr class="hover:bg-stone-50/80 transition">
+                      <td class="py-3 px-4 text-xs font-semibold text-stone-600 whitespace-nowrap">${escapeHtml(e.date)}</td>
+                      <td class="py-3 px-3">
+                        <span class="px-2.5 py-1 rounded-xl bg-sand-100 text-sand-900 text-xs font-extrabold">${escapeHtml(e.category)}</span>
+                      </td>
+                      <td class="py-3 px-3 text-stone-700">${escapeHtml(e.notes || '-')}</td>
+                      <td class="py-3 px-3 font-extrabold text-rose-700 whitespace-nowrap">${formatMoney(e.amount)}</td>
+                      <td class="py-3 px-4 text-center whitespace-nowrap">
+                        <div class="inline-flex items-center gap-1.5">
+                          <button onclick="openExpenseModal('${e.id}')" class="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-sand-100 hover:bg-sand-200 text-sand-900 cursor-pointer">تعديل</button>
+                          <button onclick="deleteExpense('${e.id}')" class="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-rose-50 hover:bg-rose-100 text-rose-700 cursor-pointer">حذف</button>
+                        </div>
+                      </td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `}
+      `;
+    }
+
+    function openExpenseModal(expenseId = null) {
+      const exp = expenseId ? state.data.expenses.find(e => e.id === expenseId) : null;
+      const today = new Date().toISOString().split('T')[0];
+      const item = exp || {
+        id: '',
+        category: EXPENSE_CATEGORIES[0],
+        amount: '',
+        date: today,
+        notes: ''
+      };
+
+      openModal(exp ? 'تعديل بند مصروف' : 'إضافة مصروف جديد', `
+        <form onsubmit="saveExpenseForm(event)" class="space-y-4">
+          <input type="hidden" id="e_id" value="${escapeHtml(item.id)}" />
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <div>
+              <label class="block text-xs font-bold text-stone-700 mb-1">بند المصروف *</label>
+              <select id="e_category" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:border-palm-500 focus:outline-none text-sm bg-white">
+                ${EXPENSE_CATEGORIES.map(c => `<option value="${c}" ${item.category === c ? 'selected' : ''}>${c}</option>`).join('')}
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-stone-700 mb-1">المبلغ (${getCurrency()}) *</label>
+              <input type="number" id="e_amount" required min="0.01" step="0.01" value="${item.amount}" placeholder="0.00"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:border-palm-500 focus:outline-none text-sm" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-stone-700 mb-1">التاريخ *</label>
+            <input type="date" id="e_date" required value="${escapeHtml(item.date)}"
+              class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:border-palm-500 focus:outline-none text-sm" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-stone-700 mb-1">تفاصيل وملاحظات</label>
+            <textarea id="e_notes" rows="2" placeholder="اكتب تفاصيل الصرف أو اسم المورد..."
+              class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:border-palm-500 focus:outline-none text-sm">${escapeHtml(item.notes)}</textarea>
+          </div>
+
+          <div class="flex items-center justify-end gap-2 pt-2">
+            <button type="button" onclick="closeModal()" class="px-4 py-2.5 rounded-xl text-sm font-bold bg-stone-100 hover:bg-stone-200 text-stone-700 cursor-pointer">إلغاء</button>
+            <button type="submit" class="px-5 py-2.5 rounded-xl text-sm font-bold bg-palm-600 hover:bg-palm-700 text-white cursor-pointer">حفظ المصروف</button>
+          </div>
+        </form>
+      `);
+    }
+
+    function saveExpenseForm(e) {
+      e.preventDefault();
+      const id = document.getElementById('e_id').value || `e-${Date.now()}`;
+      const record = {
+        id,
+        category: document.getElementById('e_category').value,
+        amount: Math.max(0, Number(document.getElementById('e_amount').value) || 0),
+        date: document.getElementById('e_date').value,
+        notes: document.getElementById('e_notes').value.trim()
+      };
+
+      const idx = state.data.expenses.findIndex(item => item.id === id);
+      if (idx >= 0) {
+        state.data.expenses[idx] = record;
+        showToast('تم تحديث المصروف بنجاح');
+      } else {
+        state.data.expenses.unshift(record);
+        showToast('تمت إضافة المصروف بنجاح');
+      }
+
+      saveStateToStorage();
+      closeModal();
+      renderCurrentModule();
+      updateGlobalSummaryBadges();
+    }
+
+    function deleteExpense(id) {
+      state.data.expenses = state.data.expenses.filter(e => e.id !== id);
+      saveStateToStorage();
+      renderCurrentModule();
+      updateGlobalSummaryBadges();
+      showToast('تم حذف المصروف', 'warning');
+    }
+
+    // =========================================================================
+    // 8. القسم الثالث: العملاء والمديونيات
+    // =========================================================================
+    function renderClientsModule(container) {
+      const clients = state.data.clients;
+      const allFinancials = clients.map(c => getClientFinancials(c));
+      const totalPurchases = allFinancials.reduce((s, f) => s + f.purchasesTotal, 0);
+      const totalPaid = allFinancials.reduce((s, f) => s + f.totalPaid, 0);
+      const totalDebt = allFinancials.reduce((s, f) => s + f.remainingDebt, 0);
+
+      const q = state.searchQuery.trim().toLowerCase();
+      const filtered = clients.filter(c =>
+        !q ||
+        c.name.toLowerCase().includes(q) ||
+        (c.phone || '').toLowerCase().includes(q) ||
+        (c.address || '').toLowerCase().includes(q) ||
+        (c.type || '').toLowerCase().includes(q)
+      );
+
+      container.innerHTML = `
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 sm:p-5 rounded-2xl border border-stone-200/80 shadow-sm">
+          <div>
+            <h2 class="text-xl font-extrabold text-palm-950">3. العملاء والمديونيات</h2>
+            <p class="text-xs sm:text-sm text-stone-500 mt-0.5">متابعة بيانات العملاء، المشتريات، المدفوعات، والمبالغ المتبقية</p>
+          </div>
+          <button onclick="openClientModal()" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-palm-600 hover:bg-palm-700 text-white text-sm font-bold shadow-sm transition cursor-pointer">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span>إضافة عميل جديد</span>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+          <div class="bg-white p-4 rounded-2xl border border-stone-200/80 shadow-sm">
+            <div class="text-xs font-bold text-stone-500">إجمالي مشتريات العملاء</div>
+            <div class="text-2xl font-extrabold text-palm-900 mt-1">${formatMoney(totalPurchases)}</div>
+            <div class="text-[11px] text-stone-400 mt-1">عدد العملاء: ${clients.length}</div>
+          </div>
+          <div class="bg-white p-4 rounded-2xl border border-stone-200/80 shadow-sm">
+            <div class="text-xs font-bold text-stone-500">إجمالي المدفوعات المحصلة</div>
+            <div class="text-2xl font-extrabold text-emerald-700 mt-1">${formatMoney(totalPaid)}</div>
+            <div class="text-[11px] text-stone-400 mt-1">مبالغ مستلمة فعلياً</div>
+          </div>
+          <div class="bg-gradient-to-br from-amber-600 to-amber-800 text-white p-4 rounded-2xl shadow-sm">
+            <div class="text-xs font-bold text-amber-100">إجمالي المديونيات المتبقية</div>
+            <div class="text-2xl font-extrabold mt-1">${formatMoney(totalDebt)}</div>
+            <div class="text-[11px] text-amber-200 mt-1">مستحقات لدى العملاء</div>
+          </div>
+        </div>
+
+        <div class="bg-white p-3.5 rounded-2xl border border-stone-200/80 shadow-sm">
+          <div class="relative">
+            <input type="text" value="${escapeHtml(state.searchQuery)}" oninput="handleSearchInput(this.value)"
+              placeholder="ابحث باسم العميل، الهاتف، العنوان، أو نوع النشاط..."
+              class="w-full pr-10 pl-4 py-2.5 rounded-xl bg-stone-50 border border-stone-200 focus:bg-white focus:border-palm-500 focus:outline-none text-sm" />
+            <svg class="w-4 h-4 text-stone-400 absolute right-3.5 top-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </div>
+        </div>
+
+        ${filtered.length === 0 ? `
+          <div class="bg-white rounded-2xl border border-stone-200 p-10 text-center text-stone-500">لا توجد بيانات عملاء مطابقة.</div>
+        ` : `
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            ${filtered.map(c => {
+              const fin = getClientFinancials(c);
+              return `
+                <div class="bg-white p-5 rounded-2xl border border-stone-200/90 shadow-sm flex flex-col justify-between gap-4">
+                  <div>
+                    <div class="flex items-start justify-between gap-2">
+                      <div>
+                        <span class="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-palm-50 text-palm-800 border border-palm-200 mb-1">
+                          ${escapeHtml(c.type || 'عميل')}
+                        </span>
+                        <h3 class="text-base font-extrabold text-palm-950">${escapeHtml(c.name)}</h3>
+                        <p class="text-xs text-stone-500 mt-0.5">${escapeHtml(c.address || '')} • <span dir="ltr">${escapeHtml(c.phone || '')}</span></p>
+                      </div>
+                      <div class="text-left">
+                        <div class="text-[11px] text-stone-400 font-bold">المتبقي عليه</div>
+                        <div class="text-base font-extrabold ${fin.remainingDebt > 0 ? 'text-rose-700' : 'text-emerald-700'}">
+                          ${formatMoney(fin.remainingDebt)}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-2 mt-4 bg-stone-50 p-3 rounded-xl text-center text-xs">
+                      <div>
+                        <div class="text-stone-400">المشتريات</div>
+                        <div class="font-extrabold text-stone-800 mt-0.5">${formatMoney(fin.purchasesTotal)}</div>
+                      </div>
+                      <div>
+                        <div class="text-stone-400">المدفوعات</div>
+                        <div class="font-extrabold text-emerald-700 mt-0.5">${formatMoney(fin.totalPaid)}</div>
+                      </div>
+                      <div>
+                        <div class="text-stone-400">الفواتير</div>
+                        <div class="font-extrabold text-palm-800 mt-0.5">${fin.invoicesCount} فاتورة</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-stone-100">
+                    ${fin.remainingDebt > 0 ? `
+                      <button onclick="openCollectPaymentModal('${c.id}')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer">
+                        تسجيل دفعة سداد
+                      </button>
+                    ` : `
+                      <span class="text-xs font-bold text-emerald-700">✓ خالص الحساب</span>
+                    `}
+                    <div class="flex items-center gap-1.5">
+                      <button onclick="openClientModal('${c.id}')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-sand-100 hover:bg-sand-200 text-sand-900 cursor-pointer">تعديل</button>
+                      <button onclick="deleteClient('${c.id}')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-rose-50 hover:bg-rose-100 text-rose-700 cursor-pointer">حذف</button>
+                    </div>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `}
+      `;
+    }
+
+    function openClientModal(clientId = null) {
+      const client = clientId ? state.data.clients.find(c => c.id === clientId) : null;
+      const fin = client ? getClientFinancials(client) : { totalPaid: 0 };
+      const c = client || {
+        id: '',
+        name: '',
+        phone: '',
+        address: '',
+        type: 'تاجر جملة',
+        notes: ''
+      };
+
+      openModal(client ? 'تعديل بيانات العميل' : 'إضافة عميل جديد', `
+        <form onsubmit="saveClientForm(event)" class="space-y-4">
+          <input type="hidden" id="c_id" value="${escapeHtml(c.id)}" />
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <div>
+              <label class="block text-xs font-bold text-stone-700 mb-1">اسم العميل / المؤسسة *</label>
+              <input type="text" id="c_name" required value="${escapeHtml(c.name)}" placeholder="مثال: مؤسسة النور للتمور"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:border-palm-500 focus:outline-none text-sm" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-stone-700 mb-1">رقم الهاتف *</label>
+              <input type="tel" id="c_phone" required value="${escapeHtml(c.phone)}" placeholder="01000000000"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:border-palm-500 focus:outline-none text-sm" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <div>
+              <label class="block text-xs font-bold text-stone-700 mb-1">العنوان / المنطقة</label>
+              <input type="text" id="c_address" value="${escapeHtml(c.address)}" placeholder="مثال: القاهرة — سوق العبور"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:border-palm-500 focus:outline-none text-sm" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-stone-700 mb-1">نوع العميل</label>
+              <input type="text" id="c_type" value="${escapeHtml(c.type)}" placeholder="تاجر جملة / تصدير / قطاعي"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:border-palm-500 focus:outline-none text-sm" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-stone-700 mb-1">إجمالي المدفوعات المستلمة منه (${getCurrency()})</label>
+            <input type="number" id="c_paymentsReceived" min="0" step="0.01" value="${fin.totalPaid}"
+              class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:border-palm-500 focus:outline-none text-sm" />
+            <p class="text-[11px] text-stone-400 mt-1">يتم خصم المدفوعات تلقائياً من إجمالي مشتريات العميل لحساب المتبقي.</p>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-stone-700 mb-1">ملاحظات</label>
+            <textarea id="c_notes" rows="2" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:border-palm-500 focus:outline-none text-sm">${escapeHtml(c.notes || '')}</textarea>
+          </div>
+
+          <div class="flex items-center justify-end gap-2 pt-2">
+            <button type="button" onclick="closeModal()" class="px-4 py-2.5 rounded-xl text-sm font-bold bg-stone-100 hover:bg-stone-200 text-stone-700 cursor-pointer">إلغاء</button>
+            <button type="submit" class="px-5 py-2.5 rounded-xl text-sm font-bold bg-palm-600 hover:bg-palm-700 text-white cursor-pointer">حفظ العميل</button>
+          </div>
+        </form>
+      `);
+    }
+
+    function saveClientForm(e) {
+      e.preventDefault();
+      const id = document.getElementById('c_id').value || `c-${Date.now()}`;
+      const record = {
+        id,
+        name: document.getElementById('c_name').value.trim(),
+        phone: document.getElementById('c_phone').value.trim(),
+        address: document.getElementById('c_address').value.trim(),
+        type: document.getElementById('c_type').value.trim() || 'عميل',
+        paymentsReceived: Math.max(0, Number(document.getElementById('c_paymentsReceived').value) || 0),
+        notes: document.getElementById('c_notes').value.trim()
+      };
+
+      const idx = state.data.clients.findIndex(c => c.id === id);
+      if (idx >= 0) {
+        state.data.clients[idx] = record;
+        showToast('تم تحديث بيانات العميل');
+      } else {
+        state.data.clients.unshift(record);
+        showToast('تمت إضافة العميل بنجاح');
+      }
+
+      saveStateToStorage();
+      closeModal();
+      renderCurrentModule();
+    }
+
+    function openCollectPaymentModal(clientId) {
+      const client = state.data.clients.find(c => c.id === clientId);
+      if (!client) return;
+      const fin = getClientFinancials(client);
+
+      openModal(`تحصيل دفعة من: ${client.name}`, `
+        <form onsubmit="saveClientPayment(event, '${client.id}')" class="space-y-4">
+          <div class="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-xs font-bold text-amber-900 flex justify-between">
+            <span>المديونية الحالية المتبقية:</span>
+            <span>${formatMoney(fin.remainingDebt)}</span>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-stone-700 mb-1">قيمة الدفعة المستلمة (${getCurrency()}) *</label>
+            <input type="number" id="pay_amount" required min="0.01" max="${fin.remainingDebt}" step="0.01" value="${fin.remainingDebt}"
+              class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:border-palm-500 focus:outline-none text-sm" />
+          </div>
+          <div class="flex items-center justify-end gap-2 pt-2">
+            <button type="button" onclick="closeModal()" class="px-4 py-2.5 rounded-xl text-sm font-bold bg-stone-100 hover:bg-stone-200 text-stone-700 cursor-pointer">إلغاء</button>
+            <button type="submit" class="px-5 py-2.5 rounded-xl text-sm font-bold bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer">تأكيد التحصيل</button>
+          </div>
+        </form>
+      `);
+    }
+
+    function saveClientPayment(e, clientId) {
+      e.preventDefault();
+      const amount = Math.max(0, Number(document.getElementById('pay_amount').value) || 0);
+      const client = state.data.clients.find(c => c.id === clientId);
+      if (!client || amount <= 0) return;
+
+      const fin = getClientFinancials(client);
+      client.paymentsReceived = fin.totalPaid + amount;
+
+      // توزيع الدفعة على فواتير العميل غير المكتملة التحصيل لتبقى الفواتير متزامنة
+      let remainingToApply = amount;
+      state.data.sales
+        .filter(s => s.clientId === clientId)
+        .forEach(sale => {
+          if (remainingToApply <= 0) return;
+          const invTotal = getSaleInvoiceTotal(sale);
+          const paid = Number(sale.paidAmount) || 0;
+          const due = Math.max(0, invTotal - paid);
+          if (due > 0) {
+            const add = Math.min(due, remainingToApply);
+            sale.paidAmount = paid + add;
+            remainingToApply -= add;
+          }
+        });
+
+      saveStateToStorage();
+      closeModal();
+      renderCurrentModule();
+      updateGlobalSummaryBadges();
+      showToast(`تم تسجيل تحصيل ${formatMoney(amount)} بنجاح`);
+    }
+
+    function deleteClient(id) {
+      state.data.clients = state.data.clients.filter(c => c.id !== id);
+      saveStateToStorage();
+      renderCurrentModule();
+      showToast('تم حذف العميل', 'warning');
+    }
+
+    // =========================================================================
+    // 9. القسم الرابع: المبيعات والفواتير
+    // =========================================================================
+    function renderSalesModule(container) {
+      const sales = state.data.sales;
+      const totalRevenue = getTotalSalesRevenue();
+      const totalCollected = getTotalSalesCollected();
+      const totalUncollected = Math.max(0, totalRevenue - totalCollected);
+      const totalKg = sales.reduce((s, item) => s + (Number(item.quantity) || 0), 0);
+
+      const q = state.searchQuery.trim().toLowerCase();
+      const varFilter = state.secondaryFilter;
+
+      const filtered = sales.filter(s => {
+        const client = state.data.clients.find(c => c.id === s.clientId);
+        const clientName = client ? client.name : '';
+        const matchVar = varFilter === 'ALL' || s.variety === varFilter;
+        const matchQ = !q ||
+          (s.variety || '').toLowerCase().includes(q) ||
+          clientName.toLowerCase().includes(q) ||
+          (s.notes || '').toLowerCase().includes(q) ||
+          (s.date || '').includes(q);
+        return matchVar && matchQ;
+      });
+
+      container.innerHTML = `
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 sm:p-5 rounded-2xl border border-stone-200/80 shadow-sm">
+          <div>
+            <h2 class="text-xl font-extrabold text-palm-950">4. المبيعات وفواتير التمور</h2>
+            <p class="text-xs sm:text-sm text-stone-500 mt-0.5">تسجيل مبيعات الأصناف، حساب إجمالي الفاتورة والتحصيل والمتبقي تلقائياً</p>
+          </div>
+          <button onclick="openSaleModal()" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-palm-600 hover:bg-palm-700 text-white text-sm font-bold shadow-sm transition cursor-pointer">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span>فاتورة بيع جديدة</span>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <div class="bg-white p-4 rounded-2xl border border-stone-200/80 shadow-sm">
+            <div class="text-xs font-bold text-stone-500">إجمالي المبيعات (الإيرادات)</div>
+            <div class="text-2xl font-extrabold text-palm-900 mt-1">${formatMoney(totalRevenue)}</div>
+            <div class="text-[11px] text-stone-400 mt-1">${sales.length} فاتورة بيع</div>
+          </div>
+          <div class="bg-white p-4 rounded-2xl border border-stone-200/80 shadow-sm">
+            <div class="text-xs font-bold text-stone-500">إجمالي التحصيل النقدي</div>
+            <div class="text-2xl font-extrabold text-emerald-700 mt-1">${formatMoney(totalCollected)}</div>
+            <div class="text-[11px] text-stone-400 mt-1">المحصل من الفواتير</div>
+          </div>
+          <div class="bg-white p-4 rounded-2xl border border-stone-200/80 shadow-sm">
+            <div class="text-xs font-bold text-stone-500">المتبقي غير المحصل</div>
+            <div class="text-2xl font-extrabold text-amber-700 mt-1">${formatMoney(totalUncollected)}</div>
+            <div class="text-[11px] text-stone-400 mt-1">مستحقات تحت التحصيل</div>
+          </div>
+          <div class="bg-gradient-to-br from-sand-600 to-sand-800 text-white p-4 rounded-2xl shadow-sm">
+            <div class="text-xs font-bold text-sand-100">إجمالي الكميات المباعة</div>
+            <div class="text-2xl font-extrabold mt-1">${formatNumber(totalKg)} كجم</div>
+            <div class="text-[11px] text-sand-200 mt-1">مختلف أصناف التمور</div>
+          </div>
+        </div>
+
+        <!-- تصفية حسب صنف التمر والبحث -->
+        <div class="bg-white p-4 rounded-2xl border border-stone-200/80 shadow-sm space-y-3">
+          <div class="flex flex-wrap gap-1.5">
+            <button onclick="setSecondaryFilter('ALL')"
+              class="px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${varFilter === 'ALL' ? 'bg-palm-700 text-white' : 'bg-stone-100 text-stone-700 hover:bg-stone-200'}">
+              جميع الأصناف
+            </button>
+            ${DATE_VARIETIES.map(v => `
+              <button onclick="setSecondaryFilter('${v}')"
+                class="px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${varFilter === v ? 'bg-palm-700 text-white' : 'bg-sand-50 text-sand-900 border border-sand-200 hover:bg-sand-100'}">
+                تمر ${v}
+              </button>
+            `).join('')}
+          </div>
+          <div class="relative">
+            <input type="text" value="${escapeHtml(state.searchQuery)}" oninput="handleSearchInput(this.value)"
+              placeholder="ابحث باسم العميل، نوع التمر، التاريخ، أو الملاحظات..."
+              class="w-full pr-10 pl-4 py-2.5 rounded-xl bg-stone-50 border border-stone-200 focus:bg-white focus:border-palm-500 focus:outline-none text-sm" />
+            <svg class="w-4 h-4 text-stone-400 absolute right-3.5 top-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </div>
+        </div>
+
+        ${filtered.length === 0 ? `
+          <div class="bg-white rounded-2xl border border-stone-200 p-10 text-center text-stone-500">لا توجد فواتير مبيعات مطابقة.</div>
+        ` : `
+          <div class="grid grid-cols-1 md:hidden gap-3">
+            ${filtered.map(s => {
+              const client = state.data.clients.find(c => c.id === s.clientId);
+              const invTotal = getSaleInvoiceTotal(s);
+              const paid = Number(s.paidAmount) || 0;
+              const rem = Math.max(0, invTotal - paid);
+              return `
+                <div class="bg-white p-4 rounded-2xl border border-stone-200/80 shadow-sm space-y-2.5">
+                  <div class="flex items-center justify-between">
+                    <span class="px-2.5 py-1 rounded-xl bg-palm-100 text-palm-900 text-xs font-extrabold">تمر ${escapeHtml(s.variety)}</span>
+                    <span class="text-xs text-stone-500 font-semibold">${escapeHtml(s.date)}</span>
+                  </div>
+                  <div class="text-sm font-bold text-stone-800">العميل: ${escapeHtml(client ? client.name : 'عميل نقدي / غير محدد')}</div>
+                  <div class="grid grid-cols-3 gap-2 bg-stone-50 p-2.5 rounded-xl text-center text-xs">
+                    <div>
+                      <div class="text-stone-400">الكمية × السعر</div>
+                      <div class="font-bold text-stone-800">${formatNumber(s.quantity)} × ${formatNumber(s.unitPrice)}</div>
+                    </div>
+                    <div>
+                      <div class="text-stone-400">الإجمالي</div>
+                      <div class="font-extrabold text-palm-900">${formatMoney(invTotal)}</div>
+                    </div>
+                    <div>
+                      <div class="text-stone-400">المحصّل / المتبقي</div>
+                      <div class="font-bold text-emerald-700">${formatNumber(paid)} / <span class="text-rose-700">${formatNumber(rem)}</span></div>
+                    </div>
+                  </div>
+                  <div class="flex items-center justify-end gap-2 pt-1">
+                    <button onclick="openSaleModal('${s.id}')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-sand-100 text-sand-900 cursor-pointer">تعديل</button>
+                    <button onclick="deleteSale('${s.id}')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-rose-50 text-rose-700 cursor-pointer">حذف</button>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+
+          <div class="hidden md:block bg-white rounded-2xl border border-stone-200/80 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-right border-collapse">
+                <thead>
+                  <tr class="bg-palm-50/80 border-b border-stone-200 text-xs font-extrabold text-palm-950">
+                    <th class="py-3.5 px-4">التاريخ</th>
+                    <th class="py-3.5 px-3">نوع التمر</th>
+                    <th class="py-3.5 px-3">العميل</th>
+                    <th class="py-3.5 px-3">الكمية</th>
+                    <th class="py-3.5 px-3">سعر الوحدة</th>
+                    <th class="py-3.5 px-3">إجمالي الفاتورة</th>
+                    <th class="py-3.5 px-3">التحصيل</th>
+                    <th class="py-3.5 px-3">المتبقي</th>
+                    <th class="py-3.5 px-4 text-center">إجراءات</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-stone-100 text-sm">
+                  ${filtered.map(s => {
+                    const client = state.data.clients.find(c => c.id === s.clientId);
+                    const invTotal = getSaleInvoiceTotal(s);
+                    const paid = Number(s.paidAmount) || 0;
+                    const rem = Math.max(0, invTotal - paid);
+                    return `
+                      <tr class="hover:bg-stone-50/80 transition">
+                        <td class="py-3 px-4 text-xs text-stone-600 font-semibold whitespace-nowrap">${escapeHtml(s.date)}</td>
+                        <td class="py-3 px-3">
+                          <span class="px-2.5 py-1 rounded-xl bg-palm-100 text-palm-900 text-xs font-extrabold">${escapeHtml(s.variety)}</span>
+                        </td>
+                        <td class="py-3 px-3 font-semibold text-stone-800">${escapeHtml(client ? client.name : 'عميل مباشر')}</td>
+                        <td class="py-3 px-3 font-semibold">${formatNumber(s.quantity)} ${escapeHtml(s.unit || 'كجم')}</td>
+                        <td class="py-3 px-3 text-stone-700">${formatMoney(s.unitPrice)}</td>
+                        <td class="py-3 px-3 font-extrabold text-palm-950">${formatMoney(invTotal)}</td>
+                        <td class="py-3 px-3 font-bold text-emerald-700">${formatMoney(paid)}</td>
+                        <td class="py-3 px-3 font-bold ${rem > 0 ? 'text-rose-700' : 'text-stone-400'}">${formatMoney(rem)}</td>
+                        <td class="py-3 px-4 text-center whitespace-nowrap">
+                          <div class="inline-flex items-center gap-1.5">
+                            <button onclick="openSaleModal('${s.id}')" class="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-sand-100 hover:bg-sand-200 text-sand-900 cursor-pointer">تعديل</button>
+                            <button onclick="deleteSale('${s.id}')" class="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-rose-50 hover:bg-rose-100 text-rose-700 cursor-pointer">حذف</button>
+                          </div>
+                        </td>
+                      </tr>
+                    `;
+                  }).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `}
+      `;
+    }
+
+    function openSaleModal(saleId = null) {
+      const sale = saleId ? state.data.sales.find(s => s.id === saleId) : null;
+      const today = new Date().toISOString().split('T')[0];
+      const defaultClientId = state.data.clients[0]?.id || '';
+      const item = sale || {
+        id: '',
+        clientId: defaultClientId,
+        variety: DATE_VARIETIES[0],
+        quantity: 500,
+        unit: 'كجم',
+        unitPrice: 60,
+        paidAmount: 0,
+        date: today,
+        notes: ''
+      };
+
+      openModal(sale ? 'تعديل فاتورة مبيعات' : 'إنشاء فاتورة مبيعات جديدة', `
+        <form onsubmit="saveSaleForm(event)" class="space-y-4">
+          <input type="hidden" id="s_id" value="${escapeHtml(item.id)}" />
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <div>
+              <label class="block text-xs font-bold text-stone-700 mb-1">نوع التمر *</label>
+              <select id="s_variety" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:border-palm-500 focus:outline-none text-sm bg-white">
+                ${DATE_VARIETIES.map(v => `<option value="${v}" ${item.variety === v ? 'selected' : ''}>${v}</option>`).join('')}
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-stone-700 mb-1">العميل</label>
+              <select id="s_clientId" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:border-palm-500 focus:outline-none text-sm bg-white">
+                <option value="">عميل مباشر / نقدي</option>
+                ${state.data.clients.map(c => `<option value="${c.id}" ${item.clientId === c.id ? 'selected' : ''}>${escapeHtml(c.name)}</option>`).join('')}
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+            <div>
+              <label class="block text-xs font-bold text-stone-700 mb-1">الكمية (كجم) *</label>
+              <input type="number" id="s_quantity" required min="0.01" step="0.01" value="${item.quantity}" oninput="recalcModalSale()"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:border-palm-500 focus:outline-none text-sm" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-stone-700 mb-1">سعر البيع للكيلو (${getCurrency()}) *</label>
+              <input type="number" id="s_unitPrice" required min="0.01" step="0.01" value="${item.unitPrice}" oninput="recalcModalSale()"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:border-palm-500 focus:outline-none text-sm" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-stone-700 mb-1">المبلغ المحصل (${getCurrency()})</label>
+              <input type="number" id="s_paidAmount" min="0" step="0.01" value="${item.paidAmount}" oninput="recalcModalSale()"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:border-palm-500 focus:outline-none text-sm" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <div>
+              <label class="block text-xs font-bold text-stone-700 mb-1">تاريخ الفاتورة *</label>
+              <input type="date" id="s_date" required value="${escapeHtml(item.date)}"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:border-palm-500 focus:outline-none text-sm" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-stone-700 mb-1">ملاحظات الفاتورة</label>
+              <input type="text" id="s_notes" value="${escapeHtml(item.notes || '')}" placeholder="مثال: فرز أول — كراتين"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:border-palm-500 focus:outline-none text-sm" />
+            </div>
+          </div>
+
+          <!-- ملخص الفاتورة الفوري -->
+          <div class="p-4 rounded-xl bg-palm-50 border border-palm-200 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <div class="text-xs font-bold text-palm-800">إجمالي الفاتورة</div>
+              <div id="s_totalPreview" class="text-xl font-extrabold text-palm-950"></div>
+            </div>
+            <div class="text-left">
+              <div class="text-xs font-bold text-amber-800">المتبقي على الفاتورة</div>
+              <div id="s_remPreview" class="text-lg font-extrabold text-rose-700"></div>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-end gap-2 pt-2">
+            <button type="button" onclick="closeModal()" class="px-4 py-2.5 rounded-xl text-sm font-bold bg-stone-100 hover:bg-stone-200 text-stone-700 cursor-pointer">إلغاء</button>
+            <button type="submit" class="px-5 py-2.5 rounded-xl text-sm font-bold bg-palm-600 hover:bg-palm-700 text-white cursor-pointer">حفظ الفاتورة</button>
+          </div>
+        </form>
+      `);
+
+      recalcModalSale();
+    }
+
+    function recalcModalSale() {
+      const qty = Number(document.getElementById('s_quantity')?.value) || 0;
+      const price = Number(document.getElementById('s_unitPrice')?.value) || 0;
+      const paid = Number(document.getElementById('s_paidAmount')?.value) || 0;
+      const total = qty * price;
+      const rem = Math.max(0, total - paid);
+
+      const totEl = document.getElementById('s_totalPreview');
+      const remEl = document.getElementById('s_remPreview');
+      if (totEl) totEl.textContent = formatMoney(total);
+      if (remEl) remEl.textContent = formatMoney(rem);
+    }
+
+    function saveSaleForm(e) {
+      e.preventDefault();
+      const id = document.getElementById('s_id').value || `s-${Date.now()}`;
+      const record = {
+        id,
+        clientId: document.getElementById('s_clientId').value,
+        variety: document.getElementById('s_variety').value,
+        quantity: Math.max(0, Number(document.getElementById('s_quantity').value) || 0),
+        unit: 'كجم',
+        unitPrice: Math.max(0, Number(document.getElementById('s_unitPrice').value) || 0),
+        paidAmount: Math.max(0, Number(document.getElementById('s_paidAmount').value) || 0),
+        date: document.getElementById('s_date').value,
+        notes: document.getElementById('s_notes').value.trim()
+      };
+
+      const idx = state.data.sales.findIndex(s => s.id === id);
+      if (idx >= 0) {
+        state.data.sales[idx] = record;
+        showToast('تم تحديث فاتورة المبيعات');
+      } else {
+        state.data.sales.unshift(record);
+        showToast('تمت إضافة فاتورة المبيعات بنجاح');
+      }
+
+      saveStateToStorage();
+      closeModal();
+      renderCurrentModule();
+      updateGlobalSummaryBadges();
+    }
+
+    function deleteSale(id) {
+      state.data.sales = state.data.sales.filter(s => s.id !== id);
+      saveStateToStorage();
+      renderCurrentModule();
+      updateGlobalSummaryBadges();
+      showToast('تم حذف فاتورة المبيعات', 'warning');
+    }
+
+    // =========================================================================
+    // 10. القسم الخامس: المزرعة، النخيل، الإنتاج والعمليات الزراعية
+    // =========================================================================
+    function renderFarmModule(container) {
+      const totalPalms = getTotalPalmsCount();
+      const totalYieldKg = getTotalYieldKg();
+      const varieties = state.data.varieties;
+      const operations = state.data.operations;
+
+      container.innerHTML = `
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 sm:p-5 rounded-2xl border border-stone-200/80 shadow-sm">
+          <div>
+            <h2 class="text-xl font-extrabold text-palm-950">5. إدارة المزرعة والنخيل والعمليات الزراعية</h2>
+            <p class="text-xs sm:text-sm text-stone-500 mt-0.5">عدد النخيل، الأصناف، حجم الإنتاج، ومتابعة العمليات الزراعية الدورية</p>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <button onclick="openVarietyModal()" class="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-sand-100 hover:bg-sand-200 text-sand-900 border border-sand-300 text-xs sm:text-sm font-bold transition cursor-pointer">
+              <span>+ إضافة صنف نخيل</span>
+            </button>
+            <button onclick="openOperationModal()" class="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-palm-600 hover:bg-palm-700 text-white text-xs sm:text-sm font-bold shadow-sm transition cursor-pointer">
+              <span>+ عملية زراعية</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- مؤشرات المزرعة -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+          <div class="bg-gradient-to-br from-palm-700 to-palm-900 text-white p-5 rounded-2xl shadow-sm">
+            <div class="text-xs font-bold text-palm-200">إجمالي عدد النخيل</div>
+            <div class="text-3xl font-extrabold mt-1">${formatNumber(totalPalms)} نخلة</div>
+            <div class="text-xs text-palm-100 mt-1">${varieties.length} أصناف مسجلة</div>
+          </div>
+          <div class="bg-white p-5 rounded-2xl border border-stone-200/80 shadow-sm">
+            <div class="text-xs font-bold text-stone-500">إجمالي الإنتاج الموسمي</div>
+            <div class="text-3xl font-extrabold text-palm-900 mt-1">${formatNumber(totalYieldKg)} كجم</div>
+            <div class="text-xs text-stone-400 mt-1">يعادل ${(totalYieldKg / 1000).toLocaleString('ar-EG', { maximumFractionDigits: 2 })} طن</div>
+          </div>
+          <div class="bg-white p-5 rounded-2xl border border-stone-200/80 shadow-sm">
+            <div class="text-xs font-bold text-stone-500">العمليات الزراعية المتابعة</div>
+            <div class="text-3xl font-extrabold text-sand-700 mt-1">${formatNumber(operations.length)} عملية</div>
+            <div class="text-xs text-stone-400 mt-1">
+              مكتملة: ${operations.filter(o => o.status === 'مكتملة').length} • جارية/مجدولة: ${operations.filter(o => o.status !== 'مكتملة').length}
+            </div>
+          </div>
+        </div>
+
+        <!-- أصناف النخيل والإنتاج -->
+        <div class="bg-white p-4 sm:p-5 rounded-2xl border border-stone-200/80 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-base font-extrabold text-palm-950">أصناف النخيل والإنتاج حسب الصنف</h3>
+            <button onclick="openVarietyModal()" class="text-xs font-bold text-palm-700 hover:underline cursor-pointer">+ إضافة صنف</button>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+            ${varieties.map(v => {
+              const avgPerPalm = v.palmCount > 0 ? (v.yieldKg / v.palmCount) : 0;
+              return `
+                <div class="p-4 rounded-2xl bg-palm-50/50 border border-palm-200/70 flex flex-col justify-between gap-3">
+                  <div>
+                    <div class="flex items-center justify-between">
+                      <span class="text-base font-extrabold text-palm-950">تمر ${escapeHtml(v.name)}</span>
+                      <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-white text-palm-800 border border-palm-200">
+                        عمر ~${v.avgAgeYears || 0} سنة
+                      </span>
+                    </div>
+                    <div class="mt-3 space-y-1 text-xs">
+                      <div class="flex justify-between"><span class="text-stone-500">عدد النخيل:</span><span class="font-extrabold text-stone-900">${formatNumber(v.palmCount)} نخلة</span></div>
+                      <div class="flex justify-between"><span class="text-stone-500">الإنتاج الكلي:</span><span class="font-extrabold text-palm-800">${formatNumber(v.yieldKg)} كجم</span></div>
+                      <div class="flex justify-between"><span class="text-stone-500">متوسط النخلة:</span><span class="font-bold text-sand-800">${avgPerPalm.toFixed(1)} كجم</span></div>
+                    </div>
+                    ${v.notes ? `<p class="text-[11px] text-stone-500 mt-2.5 line-clamp-2">${escapeHtml(v.notes)}</p>` : ''}
+                  </div>
+                  <div class="flex items-center justify-end gap-1.5 pt-2 border-t border-palm-200/50">
+                    <button onclick="openVarietyModal('${v.id}')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white hover:bg-sand-100 text-stone-800 border border-stone-200 cursor-pointer">تعديل</button>
+                    <button onclick="deleteVariety('${v.id}')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-rose-50 hover:bg-rose-100 text-rose-700 cursor-pointer">حذف</button>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+
+        <!-- متابعة العمليات الزراعية -->
+        <div class="bg-white p-4 sm:p-5 rounded-2xl border border-stone-200/80 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-base font-extrabold text-palm-950">متابعة العمليات الزراعية</h3>
+              <p class="text-xs text-stone-500">الري، التلقيح، التقليم، المكافحة، التسميد والحصاد</p>
+            </div>
+            <button onclick="openOperationModal()" class="px-3.5 py-2 rounded-xl bg-palm-600 hover:bg-palm-700 text-white text-xs font-bold cursor-pointer">
+              + تسجيل عملية
+            </button>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-right border-collapse">
+              <thead>
+                <tr class="bg-stone-50 border-b border-stone-200 text-xs font-extrabold text-stone-700">
+                  <th class="py-3 px-3">العملية الزراعية</th>
+                  <th class="py-3 px-3">الصنف المستهدف</th>
+                  <th class="py-3 px-3">التاريخ</th>
+                  <th class="py-3 px-3">الحالة</th>
+                  <th class="py-3 px-3">التفاصيل</th>
+                  <th class="py-3 px-3 text-center">إجراءات</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-stone-100 text-sm">
+                ${operations.map(op => {
+                  const badgeStyle = op.status === 'مكتملة'
+                    ? 'bg-emerald-100 text-emerald-800'
+                    : op.status === 'جارية'
+                    ? 'bg-amber-100 text-amber-800'
+                    : 'bg-sky-100 text-sky-800';
+                  return `
+                    <tr class="hover:bg-stone-50/70">
+                      <td class="py-3 px-3 font-extrabold text-palm-950">${escapeHtml(op.type)}</td>
+                      <td class="py-3 px-3 text-xs font-bold text-stone-700">${escapeHtml(op.variety)}</td>
+                      <td class="py-3 px-3 text-xs text-stone-600 whitespace-nowrap">${escapeHtml(op.date)}</td>
+                      <td class="py-3 px-3">
+                        <span class="px-2.5 py-1 rounded-full text-xs font-extrabold ${badgeStyle}">${escapeHtml(op.status)}</span>
+                      </td>
+                      <td class="py-3 px-3 text-xs text-stone-600">${escapeHtml(op.costOrNotes || '-')}</td>
+                      <td class="py-3 px-3 text-center whitespace-nowrap">
+                        <div class="inline-flex items-center gap-1.5">
+                          <button onclick="openOperationModal('${op.id}')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-sand-100 hover:bg-sand-200 text-sand-900 cursor-pointer">تعديل</button>
+                          <button onclick="deleteOperation('${op.id}')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-50 hover:bg-rose-100 text-rose-700 cursor-pointer">حذف</button>
+                        </div>
+                      </td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    function openVarietyModal(varietyId = null) {
+      const v = varietyId ? state.data.varieties.find(item => item.id === varietyId) : null;
+      const item = v || {
+        id: '',
+        name: DATE_VARIETIES[0],
+        palmCount: 100,
+        yieldKg: 6000,
+        avgAgeYears: 8,
+        notes: ''
+      };
+
+      openModal(v ? 'تعديل صنف نخيل' : 'إضافة صنف نخيل وإنتاج', `
+        <form onsubmit="saveVarietyForm(event)" class="space-y-4">
+          <input type="hidden" id="v_id" value="${escapeHtml(item.id)}" />
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <div>
+              <label class="block text-xs font-bold text-stone-700 mb-1">اسم الصنف *</label>
+              <input type="text" id="v_name" list="varietiesDatalist" required value="${escapeHtml(item.name)}"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:border-palm-500 focus:outline-none text-sm" />
+              <datalist id="varietiesDatalist">
+                ${DATE_VARIETIES.map(d => `<option value="${d}">`).join('')}
+              </datalist>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-stone-700 mb-1">عدد النخيل *</label>
+              <input type="number" id="v_palmCount" required min="1" value="${item.palmCount}"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:border-palm-500 focus:outline-none text-sm" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <div>
+              <label class="block text-xs font-bold text-stone-700 mb-1">الإنتاج الكلي (كجم) *</label>
+              <input type="number" id="v_yieldKg" required min="0" step="0.1" value="${item.yieldKg}"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:border-palm-500 focus:outline-none text-sm" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-stone-700 mb-1">متوسط عمر النخلة (سنوات)</label>
+              <input type="number" id="v_avgAgeYears" min="0" max="120" value="${item.avgAgeYears}"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:border-palm-500 focus:outline-none text-sm" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-stone-700 mb-1">ملاحظات زراعية</label>
+            <textarea id="v_notes" rows="2" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:border-palm-500 focus:outline-none text-sm">${escapeHtml(item.notes || '')}</textarea>
+          </div>
+
+          <div class="flex items-center justify-end gap-2 pt-2">
+            <button type="button" onclick="closeModal()" class="px-4 py-2.5 rounded-xl text-sm font-bold bg-stone-100 hover:bg-stone-200 text-stone-700 cursor-pointer">إلغاء</button>
+            <button type="submit" class="px-5 py-2.5 rounded-xl text-sm font-bold bg-palm-600 hover:bg-palm-700 text-white cursor-pointer">حفظ الصنف</button>
+          </div>
+        </form>
+      `);
+    }
+
+    function saveVarietyForm(e) {
+      e.preventDefault();
+      const id = document.getElementById('v_id').value || `v-${Date.now()}`;
+      const record = {
+        id,
+        name: document.getElementById('v_name').value.trim(),
+        palmCount: Math.max(0, Number(document.getElementById('v_palmCount').value) || 0),
+        yieldKg: Math.max(0, Number(document.getElementById('v_yieldKg').value) || 0),
+        avgAgeYears: Math.max(0, Number(document.getElementById('v_avgAgeYears').value) || 0),
+        notes: document.getElementById('v_notes').value.trim()
+      };
+
+      const idx = state.data.varieties.findIndex(v => v.id === id);
+      if (idx >= 0) {
+        state.data.varieties[idx] = record;
+        showToast('تم تحديث صنف النخيل');
+      } else {
+        state.data.varieties.push(record);
+        showToast('تمت إضافة صنف النخيل بنجاح');
+      }
+
+      state.data.farmInfo.totalPalms = getTotalPalmsCount();
+      saveStateToStorage();
+      closeModal();
+      renderCurrentModule();
+      updateGlobalSummaryBadges();
+    }
+
+    function deleteVariety(id) {
+      state.data.varieties = state.data.varieties.filter(v => v.id !== id);
+      state.data.farmInfo.totalPalms = getTotalPalmsCount();
+      saveStateToStorage();
+      renderCurrentModule();
+      updateGlobalSummaryBadges();
+      showToast('تم حذف صنف النخيل', 'warning');
+    }
+
+    function openOperationModal(opId = null) {
+      const op = opId ? state.data.operations.find(item => item.id === opId) : null;
+      const today = new Date().toISOString().split('T')[0];
+      const item = op || {
+        id: '',
+        type: AGRI_OPERATIONS_TYPES[0],
+        variety: 'جميع الأصناف',
+        date: today,
+        status: 'جارية',
+        costOrNotes: ''
+      };
+
+      openModal(op ? 'تعديل عملية زراعية' : 'إضافة عملية زراعية جديدة', `
+        <form onsubmit="saveOperationForm(event)" class="space-y-4">
+          <input type="hidden" id="op_id" value="${escapeHtml(item.id)}" />
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <div>
+              <label class="block text-xs font-bold text-stone-700 mb-1">نوع العملية *</label>
+              <select id="op_type" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:border-palm-500 focus:outline-none text-sm bg-white">
+                ${AGRI_OPERATIONS_TYPES.map(t => `<option value="${t}" ${item.type === t ? 'selected' : ''}>${t}</option>`).join('')}
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-stone-700 mb-1">الصنف المستهدف</label>
+              <input type="text" id="op_variety" value="${escapeHtml(item.variety)}" placeholder="جميع الأصناف / مجدول..."
+                class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:border-palm-500 focus:outline-none text-sm" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <div>
+              <label class="block text-xs font-bold text-stone-700 mb-1">التاريخ *</label>
+              <input type="date" id="op_date" required value="${escapeHtml(item.date)}"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:border-palm-500 focus:outline-none text-sm" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-stone-700 mb-1">حالة التنفيذ *</label>
+              <select id="op_status" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:border-palm-500 focus:outline-none text-sm bg-white">
+                ${AGRI_STATUSES.map(st => `<option value="${st}" ${item.status === st ? 'selected' : ''}>${st}</option>`).join('')}
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-stone-700 mb-1">وصف العملية وملاحظات التنفيذ</label>
+            <textarea id="op_notes" rows="2" placeholder="اكتب تفاصيل العمل الزراعي المنفذ أو المجدول..."
+              class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:border-palm-500 focus:outline-none text-sm">${escapeHtml(item.costOrNotes || '')}</textarea>
+          </div>
+
+          <div class="flex items-center justify-end gap-2 pt-2">
+            <button type="button" onclick="closeModal()" class="px-4 py-2.5 rounded-xl text-sm font-bold bg-stone-100 hover:bg-stone-200 text-stone-700 cursor-pointer">إلغاء</button>
+            <button type="submit" class="px-5 py-2.5 rounded-xl text-sm font-bold bg-palm-600 hover:bg-palm-700 text-white cursor-pointer">حفظ العملية</button>
+          </div>
+        </form>
+      `);
+    }
+
+    function saveOperationForm(e) {
+      e.preventDefault();
+      const id = document.getElementById('op_id').value || `op-${Date.now()}`;
+      const record = {
+        id,
+        type: document.getElementById('op_type').value,
+        variety: document.getElementById('op_variety').value.trim() || 'جميع الأصناف',
+        date: document.getElementById('op_date').value,
+        status: document.getElementById('op_status').value,
+        costOrNotes: document.getElementById('op_notes').value.trim()
+      };
+
+      const idx = state.data.operations.findIndex(o => o.id === id);
+      if (idx >= 0) {
+        state.data.operations[idx] = record;
+        showToast('تم تحديث العملية الزراعية');
+      } else {
+        state.data.operations.unshift(record);
+        showToast('تمت إضافة العملية الزراعية');
+      }
+
+      saveStateToStorage();
+      closeModal();
+      renderCurrentModule();
+    }
+
+    function deleteOperation(id) {
+      state.data.operations = state.data.operations.filter(o => o.id !== id);
+      saveStateToStorage();
+      renderCurrentModule();
+      showToast('تم حذف العملية الزراعية', 'warning');
+    }
+
+    // =========================================================================
+    // 11. القسم السادس: التقارير، صافي الربح، الطباعة والنسخ الاحتياطي
+    // =========================================================================
+    function renderReportsModule(container) {
+      const totalRevenues = getTotalSalesRevenue();
+      const totalCollected = getTotalSalesCollected();
+      const directExpenses = getTotalDirectExpenses();
+      const salariesTotal = getTotalWorkersNetSalaries();
+      const totalExpenses = directExpenses + salariesTotal;
+      const netProfit = totalRevenues - totalExpenses;
+      const totalDebts = getTotalClientDebts();
+      const totalPalms = getTotalPalmsCount();
+      const totalYield = getTotalYieldKg();
+
+      // تفصيل المصروفات حسب الفئة + الرواتب
+      const expenseBreakdown = [
+        ...EXPENSE_CATEGORIES.map(cat => ({
+          label: cat,
+          amount: state.data.expenses.filter(e => e.category === cat).reduce((s, e) => s + (Number(e.amount) || 0), 0)
+        })),
+        {
+          label: 'رواتب العمال (الصافي)',
+          amount: salariesTotal
+        }
+      ].sort((a, b) => b.amount - a.amount);
+
+      const maxExp = Math.max(...expenseBreakdown.map(x => x.amount), 1);
+
+      // تفصيل المبيعات حسب نوع التمر
+      const salesByVariety = DATE_VARIETIES.map(v => {
+        const items = state.data.sales.filter(s => s.variety === v);
+        return {
+          variety: v,
+          qty: items.reduce((sum, s) => sum + (Number(s.quantity) || 0), 0),
+          revenue: items.reduce((sum, s) => sum + getSaleInvoiceTotal(s), 0)
+        };
+      }).sort((a, b) => b.revenue - a.revenue);
+
+      const maxRev = Math.max(...salesByVariety.map(x => x.revenue), 1);
+
+      container.innerHTML = `
+        <!-- رأس التقارير وأزرار الطباعة والنسخ الاحتياطي -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 sm:p-5 rounded-2xl border border-stone-200/80 shadow-sm print-card">
+          <div>
+            <h2 class="text-xl font-extrabold text-palm-950">6. التقارير المالية والتشغيلية</h2>
+            <p class="text-xs sm:text-sm text-stone-500 mt-0.5">إجمالي الإيرادات، المصروفات، صافي ربح المزرعة، والنسخ الاحتياطي</p>
+          </div>
+          <div class="no-print flex flex-wrap items-center gap-2">
+            <button onclick="window.print()" class="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-palm-700 hover:bg-palm-800 text-white text-xs sm:text-sm font-bold cursor-pointer">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+              <span>طباعة التقرير</span>
+            </button>
+            <button onclick="exportBackupJSON()" class="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-sand-100 hover:bg-sand-200 text-sand-900 border border-sand-300 text-xs sm:text-sm font-bold cursor-pointer">
+              <span>تصدير JSON</span>
+            </button>
+            <button onclick="document.getElementById('importJsonInput').click()" class="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 border border-stone-300 text-xs sm:text-sm font-bold cursor-pointer">
+              <span>استيراد JSON</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- بطاقات الأرباح الرئيسية -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
+          <div class="bg-white p-4 sm:p-5 rounded-2xl border border-stone-200/80 shadow-sm print-card">
+            <div class="text-xs font-bold text-stone-500">إجمالي الإيرادات (المبيعات)</div>
+            <div class="text-2xl font-extrabold text-palm-800 mt-1">${formatMoney(totalRevenues)}</div>
+            <div class="text-[11px] text-emerald-700 font-semibold mt-1">المحصّل فعلياً: ${formatMoney(totalCollected)}</div>
+          </div>
+
+          <div class="bg-white p-4 sm:p-5 rounded-2xl border border-stone-200/80 shadow-sm print-card">
+            <div class="text-xs font-bold text-stone-500">إجمالي المصروفات والرواتب</div>
+            <div class="text-2xl font-extrabold text-rose-700 mt-1">${formatMoney(totalExpenses)}</div>
+            <div class="text-[11px] text-stone-400 mt-1">تشغيلي ${formatMoney(directExpenses)} + رواتب ${formatMoney(salariesTotal)}</div>
+          </div>
+
+          <div class="p-4 sm:p-5 rounded-2xl shadow-sm text-white print-card ${netProfit >= 0 ? 'bg-gradient-to-br from-palm-700 to-palm-900' : 'bg-gradient-to-br from-rose-700 to-rose-900'}">
+            <div class="text-xs font-bold opacity-90">صافي ربح / خسارة المزرعة</div>
+            <div class="text-2xl font-extrabold mt-1">${formatMoney(netProfit)}</div>
+            <div class="text-[11px] opacity-85 mt-1">${netProfit >= 0 ? 'المزرعة تحقق فائضاً ربحياً' : 'المصروفات أعلى من الإيرادات'}</div>
+          </div>
+
+          <div class="bg-white p-4 sm:p-5 rounded-2xl border border-stone-200/80 shadow-sm print-card">
+            <div class="text-xs font-bold text-stone-500">مديونيات العملاء المتبقية</div>
+            <div class="text-2xl font-extrabold text-amber-700 mt-1">${formatMoney(totalDebts)}</div>
+            <div class="text-[11px] text-stone-400 mt-1">إجمالي النخيل: ${formatNumber(totalPalms)} • الإنتاج: ${formatNumber(totalYield)} كجم</div>
+          </div>
+        </div>
+
+        <!-- تفصيل المصروفات والإيرادات -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div class="bg-white p-5 rounded-2xl border border-stone-200/80 shadow-sm space-y-3.5 print-card">
+            <h3 class="text-base font-extrabold text-palm-950">تحليل المصروفات حسب البند</h3>
+            <div class="space-y-3">
+              ${expenseBreakdown.map(item => {
+                const pct = Math.round((item.amount / maxExp) * 100);
+                return `
+                  <div>
+                    <div class="flex items-center justify-between text-xs font-bold mb-1">
+                      <span class="text-stone-700">${escapeHtml(item.label)}</span>
+                      <span class="text-rose-700">${formatMoney(item.amount)}</span>
+                    </div>
+                    <div class="w-full h-2.5 rounded-full bg-stone-100 overflow-hidden">
+                      <div class="h-full rounded-full bg-rose-500/85" style="width: ${pct}%"></div>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+
+          <div class="bg-white p-5 rounded-2xl border border-stone-200/80 shadow-sm space-y-3.5 print-card">
+            <h3 class="text-base font-extrabold text-palm-950">تحليل المبيعات حسب صنف التمر</h3>
+            <div class="space-y-3">
+              ${salesByVariety.map(item => {
+                const pct = Math.round((item.revenue / maxRev) * 100);
+                return `
+                  <div>
+                    <div class="flex items-center justify-between text-xs font-bold mb-1">
+                      <span class="text-stone-700">تمر ${escapeHtml(item.variety)} (${formatNumber(item.qty)} كجم)</span>
+                      <span class="text-palm-800">${formatMoney(item.revenue)}</span>
+                    </div>
+                    <div class="w-full h-2.5 rounded-full bg-stone-100 overflow-hidden">
+                      <div class="h-full rounded-full bg-palm-600" style="width: ${pct}%"></div>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        </div>
+
+        <!-- إدارة البيانات والنسخ الاحتياطي -->
+        <div class="no-print bg-sand-50 p-4 sm:p-5 rounded-2xl border border-sand-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h4 class="text-sm font-extrabold text-sand-900">إدارة البيانات والنسخ الاحتياطي المحلي</h4>
+            <p class="text-xs text-stone-600 mt-0.5">جميع البيانات محفوظة تلقائياً في متصفحك (localStorage). يمكنك حفظ ملف JSON أو استعادة البيانات الافتراضية.</p>
+          </div>
+          <button onclick="resetDemoData()" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-white hover:bg-rose-50 text-rose-700 border border-rose-200 cursor-pointer shrink-0">
+            استعادة البيانات التجريبية
+          </button>
+        </div>
+      `;
+    }
+
+    // =========================================================================
+    // 12. إعدادات المزرعة والنسخ الاحتياطي JSON والبحث
+    // =========================================================================
+    function handleSearchInput(val) {
+      state.searchQuery = val;
+      renderCurrentModule();
+    }
+
+    function setSecondaryFilter(filterVal) {
+      state.secondaryFilter = filterVal;
+      renderCurrentModule();
+    }
+
+    function openFarmSettingsModal() {
+      const info = state.data.farmInfo;
+      openModal('إعدادات المزرعة والبيانات', `
+        <form onsubmit="saveFarmSettingsForm(event)" class="space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <div>
+              <label class="block text-xs font-bold text-stone-700 mb-1">اسم المزرعة *</label>
+              <input type="text" id="f_name" required value="${escapeHtml(info.name)}"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:border-palm-500 focus:outline-none text-sm" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-stone-700 mb-1">اسم المالك / المدير</label>
+              <input type="text" id="f_owner" value="${escapeHtml(info.owner || '')}"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:border-palm-500 focus:outline-none text-sm" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <div>
+              <label class="block text-xs font-bold text-stone-700 mb-1">الموقع / المنطقة</label>
+              <input type="text" id="f_location" value="${escapeHtml(info.location || '')}"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:border-palm-500 focus:outline-none text-sm" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-stone-700 mb-1">رمز العملة</label>
+              <input type="text" id="f_currency" value="${escapeHtml(info.currency || 'ج.م')}" placeholder="ج.م / ر.س / د.إ"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:border-palm-500 focus:outline-none text-sm" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-stone-700 mb-1">ملاحظات عامة عن المزرعة</label>
+            <textarea id="f_notes" rows="2" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:border-palm-500 focus:outline-none text-sm">${escapeHtml(info.notes || '')}</textarea>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-stone-50 border border-stone-200 flex flex-wrap items-center justify-between gap-2">
+            <span class="text-xs font-bold text-stone-700">نسخ احتياطي واستعادة:</span>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="exportBackupJSON()" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-palm-600 text-white hover:bg-palm-700 cursor-pointer">تصدير JSON</button>
+              <button type="button" onclick="document.getElementById('importJsonInput').click()" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-sand-100 text-sand-900 border border-sand-300 hover:bg-sand-200 cursor-pointer">استيراد JSON</button>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-end gap-2 pt-2">
+            <button type="button" onclick="closeModal()" class="px-4 py-2.5 rounded-xl text-sm font-bold bg-stone-100 hover:bg-stone-200 text-stone-700 cursor-pointer">إلغاء</button>
+            <button type="submit" class="px-5 py-2.5 rounded-xl text-sm font-bold bg-palm-600 hover:bg-palm-700 text-white cursor-pointer">حفظ الإعدادات</button>
+          </div>
+        </form>
+      `);
+    }
+
+    function saveFarmSettingsForm(e) {
+      e.preventDefault();
+      state.data.farmInfo = {
+        ...state.data.farmInfo,
+        name: document.getElementById('f_name').value.trim() || 'مزرعة النخيل',
+        owner: document.getElementById('f_owner').value.trim(),
+        location: document.getElementById('f_location').value.trim(),
+        currency: document.getElementById('f_currency').value.trim() || 'ج.م',
+        notes: document.getElementById('f_notes').value.trim()
+      };
+      saveStateToStorage();
+      closeModal();
+      updateGlobalSummaryBadges();
+      renderCurrentModule();
+      showToast('تم حفظ إعدادات المزرعة');
+    }
+
+    function exportBackupJSON() {
+      try {
+        const payload = {
+          exportedAt: new Date().toISOString(),
+          app: 'إدارة المزرعة الشاملة',
+          data: state.data
+        };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const dateStamp = new Date().toISOString().split('T')[0];
+        a.href = url;
+        a.download = `palm-farm-backup-${dateStamp}.json`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        showToast('تم تحميل ملف النسخة الاحتياطية JSON');
+      } catch (err) {
+        console.error(err);
+        showToast('حدث خطأ أثناء تصدير النسخة الاحتياطية', 'error');
+      }
+    }
+
+    function handleImportJSON(event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const parsed = JSON.parse(e.target.result);
+          const importedData = parsed.data || parsed;
+          if (!importedData || typeof importedData !== 'object') {
+            throw new Error('صيغة ملف غير صالحة');
+          }
+
+          const defaults = createInitialData();
+          state.data = {
+            farmInfo: { ...defaults.farmInfo, ...(importedData.farmInfo || {}) },
+            workers: Array.isArray(importedData.workers) ? importedData.workers : [],
+            expenses: Array.isArray(importedData.expenses) ? importedData.expenses : [],
+            clients: Array.isArray(importedData.clients) ? importedData.clients : [],
+            sales: Array.isArray(importedData.sales) ? importedData.sales : [],
+            varieties: Array.isArray(importedData.varieties) ? importedData.varieties : [],
+            operations: Array.isArray(importedData.operations) ? importedData.operations : []
+          };
+
+          saveStateToStorage();
+          updateGlobalSummaryBadges();
+          renderCurrentModule();
+          showToast('تم استيراد النسخة الاحتياطية بنجاح');
+        } catch (err) {
+          console.error(err);
+          showToast('تعذر قراءة ملف JSON، تأكد من صحة الملف', 'error');
+        } finally {
+          event.target.value = '';
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function resetDemoData() {
+      state.data = createInitialData();
+      saveStateToStorage();
+      updateGlobalSummaryBadges();
+      renderCurrentModule();
+      showToast('تمت استعادة البيانات التجريبية الافتراضية');
+    }
+
+    // =========================================================================
+    // 13. تهيئة التطبيق عند التحميل
+    // =========================================================================
+    window.addEventListener('DOMContentLoaded', () => {
+      loadStateFromStorage();
+      renderNavigation();
+      updateGlobalSummaryBadges();
+      renderCurrentModule();
+    });
+  </script>
+</body>
+</html>
